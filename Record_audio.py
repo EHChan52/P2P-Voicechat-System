@@ -1,61 +1,95 @@
 import PySimpleGUI as sg
-import sounddevice as sd
 import datetime
-import struct
 import wave
-import numpy as np
+import pyaudio
+import threading
 
 
-def write_wav_file(file_path, data, sample_rate):
-    with wave.open(file_path, "wb") as wav_file:
-        wav_file.setnchannels(1)  # Mono audio
-        wav_file.setsampwidth(2)  # 2 bytes per sample (16-bit)
-        wav_file.setframerate(sample_rate)
-        wav_file.writeframes(data)
+class AudioRecorder:
+    def __init__(self):
+        self.sample_rate = 44100
+        self.frames = []
+        self.recording = False
+        self.file_name = ""
+        self.audio = pyaudio.PyAudio()
 
+        # Create PySimpleGUI layout
+        layout = [
+            [sg.Text("Recording in progress...")],
+            [sg.Button("Start Recording", key="START")],
+            [sg.Button("Stop Recording", key="STOP", disabled=True)],
+            [sg.Text("Time: ", key="TIMER")]
+        ]
 
-def Record_audio():
-    # Define the recording parameters
-    sample_rate = 44100  # Sample rate (Hz)
-    duration = 3  # Duration of recording (seconds)
-    file_name = f"recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        # Create PySimpleGUI window
+        self.window = sg.Window("Recording", layout)
 
-    # Start the recording
-    recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1)
+    def start_recording(self):
+        self.file_name = f"recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
 
-    # Open a window to show the recording progress
-    layout = [
-        [sg.Text("Recording in progress...")],
-        [
-            sg.ProgressBar(
-                1800, orientation="h", size=(20, 20), key="-PROGRESS_BAR-"
-            )
-        ],
-    ]
+        # Open audio stream
+        stream = self.audio.open(
+            format=pyaudio.paInt16,
+            channels=1,
+            rate=self.sample_rate,
+            input=True,
+            frames_per_buffer=1024
+        )
 
-    window = sg.Window("Recording", layout)
+        # Start recording
+        self.recording = True
+        start_time = datetime.datetime.now()
 
-    # Start the event loop for updating the progress bar
-    for i in range(1800):
-        event, values = window.read(timeout=1)
-        if event == sg.WINDOW_CLOSED:
-            break
-        window["-PROGRESS_BAR-"].update(i + 1)
+        while self.recording:
+            # Handle closing window when recording
+            event, _ = self.window.read(timeout=0)
+            if event == sg.WINDOW_CLOSED:
+                return
+            
+            data = stream.read(1024)
+            self.frames.append(data)
 
-    # Stop the recording
-    sd.stop()
+            # Update time in the GUI
+            time = datetime.datetime.now() - start_time
+            time = str(time).split(".")[0]  # Remove milliseconds
+            self.window["TIMER"].update(f"Time: {time}")
 
-    # Scale the recording data and convert to integers
-    scaled_data = np.int16(recording.flatten() * (2**15 - 1))
+        # Stop recording and close audio stream
+        stream.stop_stream()
+        stream.close()
 
-    # Convert the recording data to bytes
-    data_bytes = b"".join(struct.pack("<h", sample) for sample in scaled_data)
+        # Terminate PyAudio
+        self.audio.terminate()
 
-    # Write the WAV file
-    write_wav_file(file_name, data_bytes, sample_rate)
+        # Write WAV file
+        self.write_wav_file()
 
-    # Close the window
-    window.close()
+    def write_wav_file(self):
+        with wave.open(self.file_name, "wb") as wav_file:
+            wav_file.setnchannels(1)  # Mono audio
+            wav_file.setsampwidth(2)  # 2 bytes per sample (16-bit)
+            wav_file.setframerate(self.sample_rate)
+            wav_file.writeframes(b"".join(self.frames))
 
-    # Show a message box with the file path
-    sg.popup(f"Recording saved:\n{file_name}", title="Recording Saved")
+    def stop_recording(self):
+        self.recording = False
+
+    def record(self):
+        while True:
+            event, _ = self.window.read()
+            if event == sg.WINDOW_CLOSED:
+                break
+            elif event == "START":
+                self.window["START"].update(disabled=True)
+                self.window["STOP"].update(disabled=False)
+                threading.Thread(target=self.start_recording).start()
+            elif event == "STOP":
+                self.stop_recording()
+                self.window["STOP"].update(disabled=True)
+                self.window["START"].update(disabled=False)
+                sg.popup(f"Recording saved:\n{self.file_name}", title="Recording Saved")
+                break
+
+    def run(self):
+        self.record()
+        self.window.close()

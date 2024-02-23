@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 from Import_audio import Import_audio
-from Record_audio import Record_audio
+from Record_audio import AudioRecorder
 from Trim_audio import Trim_audio
 from Abouts import List_about
 from User_guide import List_user_guide
@@ -48,7 +48,8 @@ while True:
     elif event == 'About...':
         List_about()
     elif event == 'Record':
-        Record_audio()
+        recorder = AudioRecorder()
+        recorder.run()
     elif event == 'Play':
         pass
     elif event == 'Pause':
