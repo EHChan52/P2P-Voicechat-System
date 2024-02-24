@@ -16,9 +16,8 @@ class AudioRecorder:
         # Create PySimpleGUI layout
         layout = [
             [sg.Text("Recording in progress...")],
-            [sg.Button("Start Recording", key="START")],
-            [sg.Button("Stop Recording", key="STOP", disabled=True)],
-            [sg.Text("Time: ", key="TIMER")]
+            [sg.Text("Time: ", key="TIMER")],
+            [sg.Button("Start Recording", key="START"),sg.Button("Stop Recording", key="STOP", disabled=True)]            
         ]
 
         # Create PySimpleGUI window
