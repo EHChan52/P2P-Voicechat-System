@@ -1,6 +1,7 @@
 # P2P-Voicechat-System
 CSCI3280 project phase I
-<img width="724" alt="image" src="https://github.com/EHChan52/P2P-Voicechat-System/assets/126001690/fc9e0df0-3a7b-4658-8730-b1510cfd11cc">
+<img width="812" alt="image" src="https://github.com/EHChan52/P2P-Voicechat-System/assets/126001690/90ce2e7f-1af8-42f1-880c-f769cef93263">
+
 on the top there is menu that allows import files, audio trimming and overwrite, show user guide
 GUI: Left is audio list and with import more wav for editing
 Right is a graph that can show sound wave diagram
