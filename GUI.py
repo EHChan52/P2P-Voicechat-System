@@ -6,68 +6,127 @@ from Abouts import List_about
 from User_guide import List_user_guide
 from List_all_audio import List_all_audio
 import time
+
 # All the stuff inside window.
 
-sg.theme('LightBlue')
+sg.theme("LightBlue")
 
-audio_directory='./audios'
-playing_audio_name='Nothing'
+audio_directory = "./audios"
+playing_audio_name = "Nothing"
 
 # ------ Menu Definition ------ #
-menu_def = [['File', ['Import Files']],['Edit', ['Trim','Overwrite']],['Help', ['User Guide','About...']]]
+menu_def = [
+    ["File", ["Import Files"]],
+    ["Edit", ["Trim", "Overwrite"]],
+    ["Help", ["User Guide", "About..."]],
+]
 # ------ Frame Definition ------ #
-header = ["Name","Time Length","Last Modified Date"]#["Name","Time Length","Last Modified Date"]
-audio_info_list=List_all_audio(audio_directory)
-frame_layout_1=[[sg.Text('Recording List:'),sg.Button('Import Files')],[sg.Table(headings=header,values=audio_info_list,key="-TABLE-", auto_size_columns=True,enable_events=True,starting_row_number=1)]]
-frame_layout_3=[[sg.Button('🎤',font=(40),key='Record'),sg.Button('▶',font=(40),key='Play'),sg.Button('⏸',font=(40),key='Pause'),sg.Button('◼',font=(40),key='Stop'),sg.Button('⏮',font=(40),key='Fast Backward'),sg.Button('⏭',font=(40),key='Fast Forward'),sg.Text('Volume'),sg.Slider((0, 100), orientation='horizontal')]]
+header = [
+    "Name",
+    "Time Length",
+    "Last Modified Date",
+]  # ["Name","Time Length","Last Modified Date"]
+
+audio_info_list = List_all_audio(audio_directory)
+
+frame_layout_1 = [
+    [sg.Text("Recording List:"), sg.Button("Import Files")],
+    [
+        sg.Table(
+            headings=header,
+            values=audio_info_list,
+            key="-TABLE-",
+            auto_size_columns=True,
+            enable_events=True,
+            starting_row_number=1,
+        )
+    ],
+]
+
+frame_layout_3 = [
+    [
+        sg.Button("🎤", font=(40), key="Record"),
+        sg.Button("▶", font=(40), key="Play"),
+        sg.Button("⏸", font=(40), key="Pause"),
+        sg.Button("◼", font=(40), key="Stop"),
+        sg.Button("⏮", font=(40), key="Fast Backward"),
+        sg.Button("⏭", font=(40), key="Fast Forward"),
+        sg.Text("Volume"),
+        sg.Slider((0, 100), orientation="horizontal"),
+    ]
+]
+
 layout = [
     [sg.Menu(menu_def)],
-    [sg.Frame('',frame_layout_1,element_justification='center'), sg.VerticalSeparator(color='black'), sg.Output(size=(40, 15))],
-    [sg.HorizontalSeparator(color='LightBlue')],
-    [sg.Text('Currently Playing:'),sg.StatusBar(playing_audio_name,key='-Audio_playing_name-',text_color='#000000',size=(100,1))],
-    [sg.Text(time.strftime("%H:%M:%S")),sg.Text("/"),sg.Text(time.strftime("%H:%M:%S",time.localtime()),key='-Audio_Length-'),sg.Slider((0,kk:=1000), key='-play-length-',size=(100,10),orientation="h")],
-    [sg.Frame('',frame_layout_3,element_justification='center')]
-    ]
+    [
+        sg.Frame("", frame_layout_1, element_justification="center"),
+        sg.VerticalSeparator(color="black"),
+        sg.Output(size=(40, 15)),
+    ],
+    [sg.HorizontalSeparator(color="LightBlue")],
+    [
+        sg.Text("Currently Playing:"),
+        sg.StatusBar(
+            playing_audio_name,
+            key="-Audio_playing_name-",
+            text_color="#000000",
+            size=(100, 1),
+        ),
+    ],
+    [
+        sg.Text(time.strftime("%H:%M:%S")),
+        sg.Text("/"),
+        sg.Text(time.strftime("%H:%M:%S", time.localtime()), key="-Audio_Length-"),
+        sg.Slider(
+            (0, kk := 1000), key="-play-length-", size=(100, 10), orientation="h"
+        ),
+    ],
+    [sg.Frame("", frame_layout_3, element_justification="center")],
+]
 
 
 # Create the Window
-window = sg.Window('Sound Recorder', layout, resizable=True)
+window = sg.Window("Sound Recorder", layout, resizable=True)
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
-    #window['-PROGRESS_BAR-'].update(count)
+    # window['-PROGRESS_BAR-'].update(count)
     event, values = window.read()
     audio_info_list = List_all_audio(audio_directory)
 
     if event == sg.WIN_CLOSED:
         break
-    elif event == 'Import Files':
+    elif event == "Import Files":
         Import_audio()
-    elif event == 'Trim':
+    elif event == "Trim":
         Trim_audio()
-    elif event == 'User Guide':
+    elif event == "User Guide":
         List_user_guide()
-    elif event == 'About...':
+    elif event == "About...":
         List_about()
-    elif event == 'Record':
+    elif event == "Record":
         recorder = AudioRecorder()
         recorder.run()
         audio_info_list = List_all_audio(audio_directory)
-        window['-TABLE-'].update(values=audio_info_list)
-    elif event == ('Play'):
-        selected_audio_name=[audio_info_list[row][0] for row in values['-TABLE-']] #return audio name
-        selected_audio_length=[audio_info_list[row][1] for row in values['-TABLE-']] #return audio length
-        if(selected_audio_name==[] and selected_audio_length==[]):
-            window['-Audio_playing_name-'].update("Failed to Play")
+        window["-TABLE-"].update(values=audio_info_list)
+    elif event == ("Play"):
+        selected_audio_name = [
+            audio_info_list[row][0] for row in values["-TABLE-"]
+        ]  # return audio name
+        selected_audio_length = [
+            audio_info_list[row][1] for row in values["-TABLE-"]
+        ]  # return audio length
+        if selected_audio_name == [] and selected_audio_length == []:
+            window["-Audio_playing_name-"].update("Failed to Play")
         else:
-            window['-Audio_playing_name-'].update(selected_audio_name)
-            window['-Audio_Length-'].update(selected_audio_length[0])                                                                                                     
-    elif event == 'Pause':
-        if(selected_audio_name!=[]and selected_audio_length!=[]):
-            window['-Audio_playing_name-'].update('Paused')
-    elif event == 'Stop':
+            window["-Audio_playing_name-"].update(selected_audio_name)
+            window["-Audio_Length-"].update(selected_audio_length[0])
+    elif event == "Pause":
+        if selected_audio_name != [] and selected_audio_length != []:
+            window["-Audio_playing_name-"].update("Paused")
+    elif event == "Stop":
         pass
     else:
-        print(event,values)#debug use
-        
+        print(event, values)  # debug use
+
 window.close()
