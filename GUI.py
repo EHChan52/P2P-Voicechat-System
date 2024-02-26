@@ -37,7 +37,8 @@ window = sg.Window('Sound Recorder', layout, resizable=True)
 while True:
     #window['-PROGRESS_BAR-'].update(count)
     event, values = window.read()
-    audio_info_list=List_all_audio(audio_directory)
+    audio_info_list = List_all_audio(audio_directory)
+
     if event == sg.WIN_CLOSED:
         break
     elif event == 'Import Files':
@@ -51,10 +52,12 @@ while True:
     elif event == 'Record':
         recorder = AudioRecorder()
         recorder.run()
+        audio_info_list = List_all_audio(audio_directory)
+        window['-TABLE-'].update(values=audio_info_list)
     elif event == ('Play'):
         selected_audio_name=[audio_info_list[row][0] for row in values['-TABLE-']] #return audio name
         selected_audio_length=[audio_info_list[row][1] for row in values['-TABLE-']] #return audio length
-        if(selected_audio_name==[]and selected_audio_length==[]):
+        if(selected_audio_name==[] and selected_audio_length==[]):
             window['-Audio_playing_name-'].update("Failed to Play")
         else:
             window['-Audio_playing_name-'].update(selected_audio_name)
