@@ -3,7 +3,7 @@ import datetime
 import wave
 import pyaudio
 import threading
-import struct
+import os
 
 
 class AudioRecorder:
@@ -25,7 +25,10 @@ class AudioRecorder:
         self.window = sg.Window("Recording", layout)
 
     def start_recording(self):
-        self.file_name = f"./audios/recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        #Specify the subfolder and the file name
+        subfolder = "audios"
+        os.makedirs(subfolder, exist_ok=True)  # Create subfolder if it doesn't exist
+        self.file_name = os.path.join(subfolder, f"recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav")
 
         # Open audio stream
         stream = self.audio.open(
@@ -69,15 +72,6 @@ class AudioRecorder:
             wav_file.setnchannels(1)  # Mono audio
             wav_file.setsampwidth(2)  # 2 bytes per sample (16-bit)
             wav_file.setframerate(self.sample_rate)
-            
-            fmt_chunk_data = struct.pack("<HHIIHH", 1, 1, self.sample_rate, self.sample_rate * 2, 2, 16)
-            wav_file.writeframes(b"fmt ")
-            wav_file.writeframes(struct.pack("<I", len(fmt_chunk_data)))
-            wav_file.writeframes(fmt_chunk_data)
-
-            data_chunk_data = struct.pack("<I", len(self.frames))
-            wav_file.writeframes(b"data")
-            wav_file.writeframes(data_chunk_data)
             wav_file.writeframes(b"".join(self.frames))
 
     def stop_recording(self):
