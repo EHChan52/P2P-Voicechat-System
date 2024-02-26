@@ -4,6 +4,7 @@ import wave
 import pyaudio
 import threading
 import os
+import struct
 
 
 class AudioRecorder:
@@ -72,6 +73,15 @@ class AudioRecorder:
             wav_file.setnchannels(1)  # Mono audio
             wav_file.setsampwidth(2)  # 2 bytes per sample (16-bit)
             wav_file.setframerate(self.sample_rate)
+
+            fmt_chunk_data = struct.pack("<HHIIHH", 1, 1, self.sample_rate, self.sample_rate * 2, 2, 16)
+            wav_file.writeframes(b"fmt ")
+            wav_file.writeframes(struct.pack("<I", len(fmt_chunk_data)))
+            wav_file.writeframes(fmt_chunk_data)
+
+            data_chunk_data = struct.pack("<I", len(self.frames))
+            wav_file.writeframes(b"data")
+            wav_file.writeframes(data_chunk_data)
             wav_file.writeframes(b"".join(self.frames))
 
     def stop_recording(self):
