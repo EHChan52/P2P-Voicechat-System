@@ -7,6 +7,7 @@ from User_guide import List_user_guide
 from List_all_audio import List_all_audio
 from Delete_audio import Delete_Audio
 from datetime import time
+import os
 # All the stuff inside window.
 
 sg.theme('LightBlue')
@@ -14,6 +15,8 @@ sg.theme('LightBlue')
 audio_directory='./audios'
 playing_audio_name='Nothing'
 time_constant = time(0,0,0)
+
+os.makedirs("audios", exist_ok=True)
 
 # ------ Menu Definition ------ #
 menu_def = [['File', ['Import Files']],['Editor', ['Trim','Overwrite']],['Help', ['User Guide','About...']]]
