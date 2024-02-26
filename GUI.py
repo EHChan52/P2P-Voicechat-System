@@ -59,6 +59,7 @@ while True:
     elif event == 'Record':
         recorder = AudioRecorder()
         recorder.run()
+        audio_info_list=List_all_audio(audio_directory)
         window['-TABLE-'].update(List_all_audio(audio_directory))
     elif event == 'Delete':
         selected_audio_name=[audio_info_list[row][0] for row in values['-TABLE-']] #return audio name as list
