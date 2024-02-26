@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 from Import_audio import Import_audio
 from Record_audio import AudioRecorder
 from Trim_audio import Trim_audio
+from Overwrite_audio import Overwrite_audio
 from Abouts import List_about
 from User_guide import List_user_guide
 from List_all_audio import List_all_audio
@@ -168,6 +169,8 @@ while True:
         Import_audio()
     elif event == "Trim":
         Trim_audio()
+    elif event == "Overwrite":
+        Overwrite_audio()
     elif event == "User Guide":
         List_user_guide()
     elif event == "About...":
