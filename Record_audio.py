@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
 import datetime
-import wave
 import pyaudio
 import threading
 import struct
+import sys
 
 
 class AudioRecorder:
@@ -13,12 +13,18 @@ class AudioRecorder:
         self.recording = False
         self.file_name = ""
         self.audio = pyaudio.PyAudio()
+        self.nchannels = 1
+        self.sampwidth = 2
+        self.framerate = 44100
 
         # Create PySimpleGUI layout
         layout = [
             [sg.Text("Recording in progress...")],
             [sg.Text("Time: ", key="TIMER")],
-            [sg.Button("Start Recording", key="START"),sg.Button("Stop Recording", key="STOP", disabled=True)]            
+            [
+                sg.Button("Start Recording", key="START"),
+                sg.Button("Stop Recording", key="STOP", disabled=True),
+            ],
         ]
 
         # Create PySimpleGUI window
@@ -33,7 +39,7 @@ class AudioRecorder:
             channels=1,
             rate=self.sample_rate,
             input=True,
-            frames_per_buffer=1024
+            frames_per_buffer=1024,
         )
 
         # Start recording
@@ -45,7 +51,7 @@ class AudioRecorder:
             event, _ = self.window.read(timeout=0)
             if event == sg.WINDOW_CLOSED:
                 return
-            
+
             data = stream.read(1024)
             self.frames.append(data)
 
@@ -62,23 +68,46 @@ class AudioRecorder:
         self.audio.terminate()
 
         # Write WAV file
-        self.write_wav_file()
+        self.write_wav_file(b"".join(self.frames))
 
-    def write_wav_file(self):
-        with wave.open(self.file_name, "wb") as wav_file:
-            wav_file.setnchannels(1)  # Mono audio
-            wav_file.setsampwidth(2)  # 2 bytes per sample (16-bit)
-            wav_file.setframerate(self.sample_rate)
+    def write_wav_file(self, data):
+        with open(self.file_name, "wb") as wav_file:
+            wav_file.write(b"RIFF")
 
-            fmt_chunk_data = struct.pack("<HHIIHH", 1, 1, self.sample_rate, self.sample_rate * 2, 2, 16)
-            wav_file.writeframes(b"fmt ")
-            wav_file.writeframes(struct.pack("<I", len(fmt_chunk_data)))
-            wav_file.writeframes(fmt_chunk_data)
+            nframes = len(data) // (self.nchannels * self.sampwidth)
 
-            data_chunk_data = struct.pack("<I", len(self.frames))
-            wav_file.writeframes(b"data")
-            wav_file.writeframes(data_chunk_data)
-            wav_file.writeframes(b"".join(self.frames))
+            datalength = nframes * self.nchannels * self.sampwidth
+
+            wav_file.write(
+                struct.pack(
+                    "<L4s4sLHHLLHH4s",
+                    36 + datalength,
+                    b"WAVE",
+                    b"fmt ",
+                    16,
+                    1,
+                    self.nchannels,
+                    self.framerate,
+                    self.nchannels * self.framerate * self.sampwidth,
+                    self.nchannels * self.sampwidth,
+                    self.sampwidth * 8,
+                    b"data",
+                )
+            )
+
+            wav_file.write(struct.pack("<L", datalength))
+
+            if self.sampwidth != 1 and sys.byteorder == "big":
+                swapped_data = bytearray(len(data))
+                width = self.sampwidth
+
+                for i in range(0, len(data), width):
+                    for j in range(width):
+                        swapped_data[i + width - 1 - j] = data[i + j]
+
+                data = bytes(swapped_data)
+
+            wav_file.write(data)
 
     def stop_recording(self):
         self.recording = False
