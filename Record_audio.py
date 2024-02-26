@@ -3,7 +3,6 @@ import datetime
 import wave
 import pyaudio
 import threading
-import os
 import struct
 
 
