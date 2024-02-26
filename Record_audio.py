@@ -26,7 +26,7 @@ class AudioRecorder:
         self.window = sg.Window("Recording", layout)
 
     def start_recording(self):
-        self.file_name = os.path.join(f"./audios/recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav")
+        self.file_name = f"./audios/recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
 
         # Open audio stream
         stream = self.audio.open(
