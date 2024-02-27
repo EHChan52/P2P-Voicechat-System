@@ -1,7 +1,6 @@
 import PySimpleGUI as sg
 from Import_audio import Import_audio
 from Record_audio import AudioRecorder
-from Play_audio import Play_audio
 from Trim_audio import Trim_audio
 from Overwrite_audio import Overwrite_audio
 from Abouts import List_about
@@ -11,7 +10,7 @@ from Delete_audio import Delete_Audio
 import os
 from datetime import time, datetime, timedelta
 import threading
-
+from Play_audio import Play_audio
 # All the stuff inside window.
 
 sg.theme('LightBlue')
@@ -171,7 +170,7 @@ while True:
     elif event == 'Trim':
         Trim_audio()
     elif event == 'Overwrite':
-        Overwrite_audio()
+        Trim_audio()
     elif event == 'User Guide':
         List_user_guide()
     elif event == 'About...':
@@ -200,19 +199,23 @@ while True:
                 if not paused:
                     elapsed_time += timedelta(seconds=1)
                     elapsed_time_str = elapsed_time.strftime('%H:%M:%S')
-                    window['-Eplased_Playtime-'].update(elapsed_time_str)
+                    window.write_event_value('-Update_Elapsed_Time-', elapsed_time_str)
 
                     elapsed_seconds = (elapsed_time - datetime(1900, 1, 1)).total_seconds()
                     audio_length_seconds = (audio_length - datetime(1900, 1, 1)).total_seconds()
                     slider_position = int((elapsed_seconds / audio_length_seconds) * 1000)
-                    window['-play-length-'].update(slider_position)
+                    window.write_event_value('-Update_Slider_Position-', slider_position)
 
                 sg.time.sleep(1)
 
+            window.write_event_value('-End_Play-', "end")
+
+        def stop_play():
             window['-Audio_playing_name-'].update('')
             window['-Eplased_Playtime-'].update(time_constant)
             window['-Audio_Length-'].update(time_constant)
             window['-play-length-'].update(0)
+            global thread_running
             thread_running = False
 
         selected_audio_name = [
@@ -221,7 +224,7 @@ while True:
         selected_audio_length = [
             audio_info_list[row][1] for row in values["-TABLE-"]
         ]  # return audio length as list
-
+        
         if selected_audio_name == [] and selected_audio_length == []:
             window["-Audio_playing_name-"].update("No audio Selected")
         else:   
@@ -229,14 +232,45 @@ while True:
                 window['-Audio_playing_name-'].update(selected_audio_name)
                 window['-Audio_Length-'].update(selected_audio_length[0])
                 threading.Thread(target=update_elapsed_time).start()
-                Play_audio(selected_audio_name[0])
+                threading.Thread(target=Play_audio, args=(selected_audio_name[0],)).start()
+                while True:
+                    event, values = window.read()
+
+                    if event == sg.WINDOW_CLOSED:
+                        break
+
+                    if event == '-Update_Elapsed_Time-':
+                        elapsed_time_str = values[event]
+                        window['-Eplased_Playtime-'].update(elapsed_time_str)
+
+                    if event == '-Update_Slider_Position-':
+                        slider_position = values[event]
+                        window['-play-length-'].update(slider_position)
+
+                    if event == '-End_Play-':
+                        stop_play()
+                        break
+
+                    if event == 'Pause':
+                        paused = True
+                        while paused:
+                            event, values = window.read()
+                            if event == sg.WINDOW_CLOSED:
+                                break
+                            if event == 'Play':
+                                paused = False
+                                break
+                            if event == 'Stop':
+                                stop_play()
+                                break
+
+                    if event == 'Stop':
+                        stop_play()
+                        break
     elif event == 'Pause':
         paused = True
     elif event == 'Stop':
-        window['-Audio_playing_name-'].update('')
-        window['-Audio_Length-'].update(time_constant)
-        window['-play-length-'].update(0)
-        thread_running = False
+        stop_play()
     elif event == "Muted":
         window["-Volume-"].update(0)
         window["Muted"].update("🔇")
