@@ -214,7 +214,7 @@ while True:
         elif volume_value>0 and volume_value<=33:
             window['Muted'].update('🔈')
         elif volume_value>33 and volume_value<=66:
-            window['Muted'].update('🔉')window["-Audio_playing_name-"].update(selected_audio_name)
+            window['Muted'].update('🔉')
             window["-Audio_Length-"].update(selected_audio_length[0])
     elif event == "Pause":
         selected_audio_name = [
