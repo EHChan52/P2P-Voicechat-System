@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 from Import_audio import Import_audio
 from Record_audio import AudioRecorder
-from Trim_audio import Trim_audio
+from Trim_audio_GUI import Trim_audio_GUI
 from Overwrite_audio import Overwrite_audio
 from Abouts import List_about
 from User_guide import List_user_guide
@@ -168,9 +168,15 @@ while True:
     elif event == 'Import Audio':
         Import_audio()
     elif event == 'Trim':
-        Trim_audio()
+        selected_audio_name = [
+            audio_info_list[row][0] for row in values["-TABLE-"]
+        ]  # return audio name as list
+        selected_audio_length = [
+            audio_info_list[row][1] for row in values["-TABLE-"]
+        ]  # return audio length as list
+        Trim_audio_GUI(audio_directory,selected_audio_name,selected_audio_length)
     elif event == 'Overwrite':
-        Trim_audio()
+        Trim_audio_GUI()
     elif event == 'User Guide':
         List_user_guide()
     elif event == 'About...':
