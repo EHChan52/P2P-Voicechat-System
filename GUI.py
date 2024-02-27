@@ -164,6 +164,7 @@ while True:
     window.finalize()
     audio_info_list = List_all_audio(audio_directory)
     if event == sg.WIN_CLOSED:
+        player.stop_audio()
         break
     elif event == 'Import Audio':
         Import_audio()
@@ -239,12 +240,13 @@ while True:
                 window['-Audio_Length-'].update(selected_audio_length[0])
                 player = AudioPlayer(selected_audio_name[0])
                 # args=speed
-                threading.Thread(target=player.play_audio, args=(2,)).start()
+                threading.Thread(target=player.play_audio, args=(1,)).start()
                 threading.Thread(target=update_elapsed_time).start()
                 while True:
                     event, values = window.read()
 
                     if event == sg.WINDOW_CLOSED:
+                        player.stop_audio()
                         break
 
                     if event == '-Update_Elapsed_Time-':
@@ -264,6 +266,7 @@ while True:
                         while paused:
                             event, values = window.read()
                             if event == sg.WINDOW_CLOSED:
+                                player.stop_audio()
                                 break
                             if event == 'Play':
                                 paused = False

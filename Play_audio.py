@@ -5,6 +5,8 @@ class AudioPlayer:
         self.audio_name = audio_name
         self.paused = False
         self.stopped = False
+        self.stream = None
+        self.audio_obj = None
 
     def play_audio(self, speed):
         with open('./audios/' + self.audio_name, 'rb') as input_file:
@@ -26,20 +28,20 @@ class AudioPlayer:
             for i in range(44, len(wave), sample_width*2):
                 adjusted_wave.extend(wave[i:i+sample_width])
 
-        audio_obj = pyaudio.PyAudio()
-        stream = audio_obj.open(format=audio_obj.get_format_from_width(sample_width),
+        self.audio_obj = pyaudio.PyAudio()
+        self.stream = self.audio_obj.open(format=self.audio_obj.get_format_from_width(sample_width),
                                 channels=n_channels,
                                 rate=frame_rate,
                                 output=True)
 
         if speed == 0.5 or speed == 2:
-            stream.write(bytes(adjusted_wave))
+            self.stream.write(bytes(adjusted_wave))
         else:
-            stream.write(wave)
+            self.stream.write(wave)
 
-        stream.stop_stream()
-        stream.close()
-        audio_obj.terminate()
+        self.stream.stop_stream()
+        self.stream.close()
+        self.audio_obj.terminate()
 
     def pause_audio(self):
         self.paused = True
@@ -49,3 +51,6 @@ class AudioPlayer:
 
     def stop_audio(self):
         self.stopped = True
+        self.stream.stop_stream()
+        self.stream.close()
+        self.audio_obj.terminate()
