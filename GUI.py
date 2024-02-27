@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 from Import_audio import Import_audio
 from Record_audio import AudioRecorder
+from Play_audio import Play_audio
 from Trim_audio import Trim_audio
 from Overwrite_audio import Overwrite_audio
 from Abouts import List_about
@@ -10,8 +11,6 @@ from Delete_audio import Delete_Audio
 import os
 from datetime import time, datetime, timedelta
 import threading
-import pygame
-import time as std_time
 
 # All the stuff inside window.
 
@@ -230,12 +229,7 @@ while True:
                 window['-Audio_playing_name-'].update(selected_audio_name)
                 window['-Audio_Length-'].update(selected_audio_length[0])
                 threading.Thread(target=update_elapsed_time).start()
-                with open(audio_directory +'/' + selected_audio_name[0], 'rb') as wave_file:
-                    pygame.mixer.init()
-                    pygame.mixer.music.load(wave_file)
-                    pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy():
-                        std_time.sleep(1)
+                Play_audio(selected_audio_name[0])
     elif event == 'Pause':
         paused = True
     elif event == 'Stop':
