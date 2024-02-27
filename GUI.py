@@ -10,6 +10,9 @@ from Delete_audio import Delete_Audio
 import os
 from datetime import time, datetime, timedelta
 import threading
+import pygame
+import time as std_time
+
 # All the stuff inside window.
 
 sg.theme('LightBlue')
@@ -219,7 +222,7 @@ while True:
         selected_audio_length = [
             audio_info_list[row][1] for row in values["-TABLE-"]
         ]  # return audio length as list
-        
+
         if selected_audio_name == [] and selected_audio_length == []:
             window["-Audio_playing_name-"].update("No audio Selected")
         else:   
@@ -227,6 +230,12 @@ while True:
                 window['-Audio_playing_name-'].update(selected_audio_name)
                 window['-Audio_Length-'].update(selected_audio_length[0])
                 threading.Thread(target=update_elapsed_time).start()
+                with open(audio_directory +'/' + selected_audio_name[0], 'rb') as wave_file:
+                    pygame.mixer.init()
+                    pygame.mixer.music.load(wave_file)
+                    pygame.mixer.music.play()
+                    while pygame.mixer.music.get_busy():
+                        std_time.sleep(1)
     elif event == 'Pause':
         paused = True
     elif event == 'Stop':
