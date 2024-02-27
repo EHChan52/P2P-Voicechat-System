@@ -10,7 +10,7 @@ from Delete_audio import Delete_Audio
 import os
 from datetime import time, datetime, timedelta
 import threading
-from Play_audio import Play_audio
+from Play_audio import AudioPlayer
 # All the stuff inside window.
 
 sg.theme('LightBlue')
@@ -231,8 +231,10 @@ while True:
             if not thread_running:
                 window['-Audio_playing_name-'].update(selected_audio_name)
                 window['-Audio_Length-'].update(selected_audio_length[0])
+                player = AudioPlayer(selected_audio_name[0])
+                # args=speed
+                threading.Thread(target=player.play_audio, args=(2,)).start()
                 threading.Thread(target=update_elapsed_time).start()
-                threading.Thread(target=Play_audio, args=(selected_audio_name[0],)).start()
                 while True:
                     event, values = window.read()
 

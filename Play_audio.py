@@ -1,32 +1,51 @@
 import pyaudio
 
-def Play_audio(audio_name):
+class AudioPlayer:
+    def __init__(self, audio_name):
+        self.audio_name = audio_name
+        self.paused = False
+        self.stopped = False
 
-    with open('./audios/' + audio_name, 'rb') as input_file:
+    def play_audio(self, speed):
+        with open('./audios/' + self.audio_name, 'rb') as input_file:
+            wave = bytes(input_file.read())
 
-        wave = bytes(input_file.read())
+        n_channels = int.from_bytes(wave[22:24], byteorder='little')
+        frame_rate = int.from_bytes(wave[24:28], byteorder='little')
+        bits_per_sample = int.from_bytes(wave[34:36], byteorder='little')
 
-        input_file.seek(22)
-        n_channels_bytes = input_file.read(2)
-        n_channels = int.from_bytes(n_channels_bytes, byteorder='little')
+        sample_width = bits_per_sample // 8
 
-        input_file.seek(24)
-        frame_rate_bytes = input_file.read(4)
-        frame_rate = int.from_bytes(frame_rate_bytes, byteorder='little')
+        if speed == 0.5:
+            adjusted_wave = bytearray()
+            for i in range(44, len(wave), sample_width):
+                adjusted_wave.extend(wave[i:i+sample_width])
+                adjusted_wave.extend(wave[i:i+sample_width])
+        elif speed == 2:
+            adjusted_wave = bytearray()
+            for i in range(44, len(wave), sample_width*2):
+                adjusted_wave.extend(wave[i:i+sample_width])
 
-        input_file.seek(34)
-        bits_per_sample_bytes = input_file.read(2)
-        bits_per_sample = int.from_bytes(bits_per_sample_bytes, byteorder='little')
+        audio_obj = pyaudio.PyAudio()
+        stream = audio_obj.open(format=audio_obj.get_format_from_width(sample_width),
+                                channels=n_channels,
+                                rate=frame_rate,
+                                output=True)
 
-    sample_width = bits_per_sample / 8
+        if speed == 0.5 or speed == 2:
+            stream.write(bytes(adjusted_wave))
+        else:
+            stream.write(wave)
 
-    audio_obj = pyaudio.PyAudio()
-    stream = audio_obj.open(format=audio_obj.get_format_from_width(sample_width),
-                            channels=n_channels,
-                            rate=frame_rate,
-                            output=True)
-    stream.write(wave)
-    stream.stop_stream()
-    stream.close()
-    audio_obj.terminate()
-    return None
+        stream.stop_stream()
+        stream.close()
+        audio_obj.terminate()
+
+    def pause_audio(self):
+        self.paused = True
+
+    def resume_audio(self):
+        self.paused = False
+
+    def stop_audio(self):
+        self.stopped = True
