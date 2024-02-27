@@ -169,7 +169,7 @@ while True:
     elif event == 'Trim':
         Trim_audio()
     elif event == 'Overwrite':
-        Trim_audio()
+        Overwrite_audio()
     elif event == 'User Guide':
         List_user_guide()
     elif event == 'About...':

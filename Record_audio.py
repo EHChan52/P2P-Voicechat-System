@@ -68,10 +68,10 @@ class AudioRecorder:
         self.audio.terminate()
 
         # Write WAV file
-        self.write_wav_file(b"".join(self.frames))
+        self.write_wav_file(self.file_name, b"".join(self.frames))
 
-    def write_wav_file(self, data):
-        with open(self.file_name, "wb") as wav_file:
+    def write_wav_file(self, file_name, data):
+        with open(file_name, "wb") as wav_file:
             wav_file.write(b"RIFF")
 
             nframes = len(data) // (self.nchannels * self.sampwidth)
