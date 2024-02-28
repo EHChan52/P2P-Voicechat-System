@@ -19,12 +19,12 @@ class AudioPlayer:
 
         sample_width = bits_per_sample // 8
 
-        if speed == 0.5:
+        if speed == '50%':
             adjusted_wave = bytearray()
             for i in range(44, len(wave), sample_width):
                 adjusted_wave.extend(wave[i:i+sample_width])
                 adjusted_wave.extend(wave[i:i+sample_width])
-        elif speed == 2:
+        elif speed == '200%':
             adjusted_wave = bytearray()
             for i in range(44, len(wave), sample_width*2):
                 adjusted_wave.extend(wave[i:i+sample_width])
@@ -35,7 +35,7 @@ class AudioPlayer:
                                 rate=sample_rate,
                                 output=True)
 
-        if speed == 0.5 or speed == 2:
+        if speed == '50%' or speed == '200%':
             self.stream.write(bytes(adjusted_wave))
         else:
             self.stream.write(wave)

@@ -77,6 +77,7 @@ frame_layout_playback_speed = [
             initial_value="100%",
             enable_events=True,
             readonly=True,
+            key="-Speed-"
         ),
     ]
 ]
@@ -195,7 +196,7 @@ while True:
         window["-TABLE-"].update(List_all_audio(audio_directory))
     elif event == ("Play"):
         paused = False
-        
+
         def update_elapsed_time():
             global thread_running
             thread_running = True
@@ -240,7 +241,7 @@ while True:
                 window['-Audio_Length-'].update(selected_audio_length[0])
                 player = AudioPlayer(audio_directory, selected_audio_name[0])
                 # args=speed
-                threading.Thread(target=player.play_audio, args=(1,)).start()
+                threading.Thread(target=player.play_audio, args=(values['-Speed-'],)).start()
                 threading.Thread(target=update_elapsed_time).start()
                 while True:
                     event, values = window.read()
