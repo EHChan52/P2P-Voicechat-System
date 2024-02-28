@@ -13,7 +13,7 @@ class AudioPlayer:
             wave = bytes(input_file.read())
 
         n_channels = int.from_bytes(wave[22:24], byteorder='little')
-        frame_rate = int.from_bytes(wave[24:28], byteorder='little')
+        sample_rate = int.from_bytes(wave[24:28], byteorder='little')
         bits_per_sample = int.from_bytes(wave[34:36], byteorder='little')
 
         sample_width = bits_per_sample // 8
@@ -31,7 +31,7 @@ class AudioPlayer:
         self.audio_obj = pyaudio.PyAudio()
         self.stream = self.audio_obj.open(format=self.audio_obj.get_format_from_width(sample_width),
                                 channels=n_channels,
-                                rate=frame_rate,
+                                rate=sample_rate,
                                 output=True)
 
         if speed == 0.5 or speed == 2:
