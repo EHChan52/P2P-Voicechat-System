@@ -58,6 +58,7 @@ def Overwrite_audio_GUI(audio_directory,selected_audio_name,selected_audio_lengt
              ]
     if valid:
         window = sg.Window('Audio Overwriter', layout_audio_overwrite)
+        audio_duration = None
         while True:
             event, values = window.read()
             if event == sg.WIN_CLOSED or event == 'Discard & Exit': 
@@ -65,11 +66,26 @@ def Overwrite_audio_GUI(audio_directory,selected_audio_name,selected_audio_lengt
             if event == "-Trimmed-Starting-Time-Slide-":
                 startTime = values["-Trimmed-Starting-Time-Slide-"]
                 window["-Overwrite-Starting-Time-"].update(seconds_to_time(startTime))
+
+                if (audio_duration is not None):
+                    if (startTime + time_to_seconds(audio_duration) <= total_seconds):
+                        window["-Trimmed-Ending-Time-"].update(seconds_to_time(total_seconds)) 
+
+                    if (startTime + time_to_seconds(audio_duration) > total_seconds):
+                        window["-Trimmed-Ending-Time-"].update(seconds_to_time(startTime + time_to_seconds(audio_duration))) 
+
             if event =="-FileBrowse-":
                 audio_name,audio_duration=get_audio_info(values['-FileBrowse-'])
                 window["-selAudioName-"].update(audio_name)
                 window["-selAudioLen-"].update(audio_duration)
-                window["-Trimmed-Ending-Time-"].update(seconds_to_time(total_seconds + time_to_seconds(audio_duration))) 
+                startTime = values["-Trimmed-Starting-Time-Slide-"]
+
+                if (startTime + time_to_seconds(audio_duration) <= total_seconds):
+                    window["-Trimmed-Ending-Time-"].update(seconds_to_time(total_seconds)) 
+
+                if (startTime + time_to_seconds(audio_duration) > total_seconds):
+                    window["-Trimmed-Ending-Time-"].update(seconds_to_time(startTime + time_to_seconds(audio_duration))) 
+                    
             if event == sg.WIN_CLOSED or event == 'Discard & Exit': 
                 break
             if event == 'Save & Exit':
