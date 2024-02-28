@@ -25,7 +25,7 @@ def Overwrite_audio(audio_directory, target_file, source_file, overwrite_start_t
 
     overwrited_wave = target_wave[:end_pos] + source_wave + target_wave[end_pos + len(source_wave):]
 
-    recorder = AudioRecorder()
+    recorder = AudioRecorder(audio_directory)
     recorder.write_wav_file(output_file, overwrited_wave)
 
     return None

@@ -27,7 +27,7 @@ def Trim_audio(name,audio_directory, start_time, end_time):
 
     trimmed_wave = wave[start_pos:end_pos]
 
-    recorder = AudioRecorder()
+    recorder = AudioRecorder(audio_directory)
     recorder.write_wav_file(output_file, trimmed_wave)
 
     while True:
