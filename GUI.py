@@ -7,6 +7,7 @@ from Abouts import List_about
 from User_guide import List_user_guide
 from List_all_audio import List_all_audio
 from Delete_audio import Delete_Audio
+from audio_to_waveform import Generate_waveform
 import os
 from datetime import time, datetime, timedelta
 import threading
@@ -112,11 +113,12 @@ frame_layout_playback_controls = [
 frame_layout_audio_to_visual = [
     [
         sg.Graph(
-            (400, 200),
-            (-400, -200),
-            (400, 200),
-            background_color="black",
-            key="-GRAPH-",
+        canvas_size=(400, 200),
+        graph_bottom_left=(0, 0),
+        graph_top_right=(400, 200),
+        key="-GRAPH-",
+        enable_events=True,
+        background_color="black",
         )
     ],
     [
@@ -158,7 +160,7 @@ layout = [
 ]
 
 # Create the Window
-window = sg.Window("Sound Recorder", layout)
+window = sg.Window("Sound Recorder", layout,finalize=True)
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
@@ -167,8 +169,9 @@ while True:
     audio_info_list = List_all_audio(audio_directory)
     if event == sg.WINDOW_CLOSED:
         player.stop_audio()
+        os.remove("temp_plot.png")
         break
-    elif event == "Import Audio":
+    elif event == "Import Files":
         Import_audio()
     elif event == "Trim":
         selected_audio_name = [
@@ -204,13 +207,18 @@ while True:
         window["-TABLE-"].update(List_all_audio(audio_directory))
     elif event == ("Play"):
         paused = False
-
+        selected_audio_name = [
+            audio_info_list[row][0] for row in values["-TABLE-"]
+        ]  # return audio name as list
+        waveform_image=Generate_waveform(audio_directory+'/'+selected_audio_name[0])
+        graph = window["-GRAPH-"]
+        # Display the image on the graph
+        graph.draw_image(data=waveform_image, location=(0, 200))
         def update_elapsed_time(speed):
             global thread_running
             thread_running = True
             elapsed_time = datetime.strptime("00:00:00", "%H:%M:%S")
             audio_length = datetime.strptime(selected_audio_length[0], "%H:%M:%S")
-
             while elapsed_time < audio_length and thread_running:
                 if not paused:
                     elapsed_time += timedelta(seconds=1)
@@ -244,6 +252,7 @@ while True:
             window["-Eplased_Playtime-"].update(time_constant)
             window["-Audio_Length-"].update(time_constant)
             window["-play-length-"].update(0)
+            graph.erase()
             global thread_running
             thread_running = False
 
@@ -271,6 +280,7 @@ while True:
 
                     if event == sg.WINDOW_CLOSED:
                         player.stop_audio()
+                        graph.erase()
                         break
 
                     if event == "-Update_Elapsed_Time-":
@@ -283,6 +293,8 @@ while True:
 
                     if event == "-End_Play-":
                         stop_play()
+                        os.remove("temp_plot.png")
+                        window["-GRAPH-"].update("#000000")
                         break
 
                     if event == "Pause":
@@ -305,11 +317,11 @@ while True:
                     if event == "Stop":
                         player.stop_audio()
                         stop_play()
+                        os.remove("temp_plot.png")
+                        graph.erase()
                         break
     elif event == "Pause":
         paused = True
-    elif event == "Stop":
-        pass
     elif event == "Muted":
         window["-Volume-"].update(0)
         window["Muted"].update("🔇")
