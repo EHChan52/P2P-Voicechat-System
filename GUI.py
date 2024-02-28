@@ -179,7 +179,13 @@ while True:
         Trim_audio_GUI(audio_directory,selected_audio_name,selected_audio_length)
         window["-TABLE-"].update(List_all_audio(audio_directory))
     elif event == 'Overwrite':
-        Trim_audio_GUI()
+         selected_audio_name = [
+            audio_info_list[row][0] for row in values["-TABLE-"]
+        ]  # return audio name as list
+        selected_audio_length = [
+            audio_info_list[row][1] for row in values["-TABLE-"]
+        ]  # return audio length as list
+        Overwrite_audio_GUI(audio_directory,selected_audio_name,selected_audio_length)
     elif event == 'User Guide':
         List_user_guide()
     elif event == 'About...':
