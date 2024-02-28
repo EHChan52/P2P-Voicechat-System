@@ -238,7 +238,7 @@ while True:
             if not thread_running:
                 window['-Audio_playing_name-'].update(selected_audio_name)
                 window['-Audio_Length-'].update(selected_audio_length[0])
-                player = AudioPlayer(selected_audio_name[0])
+                player = AudioPlayer(audio_directory, selected_audio_name[0])
                 # args=speed
                 threading.Thread(target=player.play_audio, args=(1,)).start()
                 threading.Thread(target=update_elapsed_time).start()

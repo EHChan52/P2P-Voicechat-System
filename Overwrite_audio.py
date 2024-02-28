@@ -1,8 +1,8 @@
 from Record_audio import AudioRecorder
 
-def Overwrite_audio(target_file, source_file, overwrite_start_time):
+def Overwrite_audio(audio_directory, target_file, source_file, overwrite_start_time):
     # time in seconds
-    output_file = 'overwrited_' + target_file
+    output_file = audio_directory + '/' + 'overwrited_' + target_file
 
     with open(source_file, 'rb') as wave_file:
         source_wave = bytearray(wave_file.read())

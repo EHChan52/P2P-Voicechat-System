@@ -45,8 +45,7 @@ def Trim_audio_GUI(audio_directory,selected_audio_name,selected_audio_length):
             if event == sg.WIN_CLOSED or event == 'Discard & Exit': 
                 break
             if event == 'Save & Exit':
-                full_path = audio_directory + '/' + selected_audio_name
-                Trim_audio(selected_audio_name,full_path,values["-Trimmed-Starting-Time-Slide-"],values["-Trimmed-Ending-Time-Slide-"])
+                Trim_audio(selected_audio_name,audio_directory,values["-Trimmed-Starting-Time-Slide-"],values["-Trimmed-Ending-Time-Slide-"])
                 break
     else:
         window= sg.Window('',layout2)

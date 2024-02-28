@@ -1,9 +1,10 @@
 import PySimpleGUI as sg
 from Record_audio import AudioRecorder
 
-def Trim_audio(name,input_file, start_time, end_time):
+def Trim_audio(name,audio_directory, start_time, end_time):
     # time in seconds
-    output_file = 'trimmed_' + name
+    input_file = audio_directory + '/' + name
+    output_file = audio_directory + '/' + 'trimmed_' + name
 
     layout = [[sg.Text('Audio Selected to Trim: ')]]
     window = sg.Window('Audio Trimmer', layout)

@@ -1,7 +1,8 @@
 import pyaudio
 
 class AudioPlayer:
-    def __init__(self, audio_name):
+    def __init__(self, audio_directory, audio_name):
+        self.audio_directory = audio_directory
         self.audio_name = audio_name
         self.paused = False
         self.stopped = False
@@ -9,7 +10,7 @@ class AudioPlayer:
         self.audio_obj = None
 
     def play_audio(self, speed):
-        with open('./audios/' + self.audio_name, 'rb') as input_file:
+        with open(self.audio_directory + '/' + self.audio_name, 'rb') as input_file:
             wave = bytes(input_file.read())
 
         n_channels = int.from_bytes(wave[22:24], byteorder='little')
