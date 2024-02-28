@@ -205,7 +205,7 @@ while True:
     elif event == ("Play"):
         paused = False
 
-        def update_elapsed_time():
+        def update_elapsed_time(speed):
             global thread_running
             thread_running = True
             elapsed_time = datetime.strptime("00:00:00", "%H:%M:%S")
@@ -230,7 +230,12 @@ while True:
                         "-Update_Slider_Position-", slider_position
                     )
 
-                sg.time.sleep(1)
+                if speed == '50%':
+                    sg.time.sleep(2)
+                elif speed == '200%':
+                    sg.time.sleep(0.5)
+                else:
+                    sg.time.sleep(1)
 
             window.write_event_value("-End_Play-", "end")
 
@@ -260,7 +265,7 @@ while True:
                 threading.Thread(
                     target=player.play_audio, args=(values["-Speed-"],)
                 ).start()
-                threading.Thread(target=update_elapsed_time).start()
+                threading.Thread(target=update_elapsed_time, args=(values["-Speed-"],)).start()
                 while True:
                     event, values = window.read()
 
@@ -277,7 +282,6 @@ while True:
                         window["-play-length-"].update(slider_position)
 
                     if event == "-End_Play-":
-                        player.stop_audio()
                         stop_play()
                         break
 
