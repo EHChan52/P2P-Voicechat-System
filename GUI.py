@@ -176,6 +176,7 @@ while True:
             audio_info_list[row][1] for row in values["-TABLE-"]
         ]  # return audio length as list
         Trim_audio_GUI(audio_directory,selected_audio_name,selected_audio_length)
+        window["-TABLE-"].update(List_all_audio(audio_directory))
     elif event == 'Overwrite':
         Trim_audio_GUI()
     elif event == 'User Guide':
