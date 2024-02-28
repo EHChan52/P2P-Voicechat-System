@@ -7,7 +7,8 @@ import sys
 
 
 class AudioRecorder:
-    def __init__(self):
+    def __init__(self, audio_directory):
+        self.audio_directory = audio_directory
         self.sample_rate = 44100
         self.frames = []
         self.recording = False
@@ -31,7 +32,7 @@ class AudioRecorder:
         self.window = sg.Window("Recording", layout)
 
     def start_recording(self):
-        self.file_name = f"./audios/recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        self.file_name = self.audio_directory + f"/recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
 
         # Open audio stream
         stream = self.audio.open(

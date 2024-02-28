@@ -183,7 +183,7 @@ while True:
     elif event == 'About...':
         List_about()
     elif event == 'Record':
-        recorder = AudioRecorder()
+        recorder = AudioRecorder(audio_directory)
         recorder.run()
         audio_info_list = List_all_audio(audio_directory)
         window["-TABLE-"].update(List_all_audio(audio_directory))
