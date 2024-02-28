@@ -6,9 +6,6 @@ def Trim_audio(name,audio_directory, start_time, end_time):
     input_file = audio_directory + '/' + name
     output_file = audio_directory + '/' + 'trimmed_' + name
 
-    layout = [[sg.Text('Audio Selected to Trim: ')]]
-    window = sg.Window('Audio Trimmer', layout)
-
     with open(input_file, 'rb') as wave_file:
         wave = bytearray(wave_file.read())
 
@@ -29,11 +26,5 @@ def Trim_audio(name,audio_directory, start_time, end_time):
 
     recorder = AudioRecorder(audio_directory)
     recorder.write_wav_file(output_file, trimmed_wave)
-
-    while True:
-        event, values = window.read()
-        if event == sg.WIN_CLOSED:
-            break
-    window.close()
 
     return None
