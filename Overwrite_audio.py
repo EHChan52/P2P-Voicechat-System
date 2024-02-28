@@ -1,32 +1,31 @@
-import wave
+from Record_audio import AudioRecorder
 
 def Overwrite_audio(target_file, source_file, overwrite_start_time):
     # time in seconds
     output_file = 'overwrited_' + target_file
 
-    with wave.open(source_file, 'rb') as input_wave:
-        
-        source_params = input_wave.getparams()
+    with open(source_file, 'rb') as wave_file:
+        source_wave = bytearray(wave_file.read())
 
-        source_frames = input_wave.readframes(source_params.nframes)
+    with open(target_file, 'rb') as wave_file:
+        target_wave = bytearray(wave_file.read())
 
-    with wave.open(target_file, 'rb') as input_wave:
-        
-        target_params = input_wave.getparams()
+        wave_file.seek(24)
+        frame_rate_bytes = wave_file.read(4)
+        frame_rate = int.from_bytes(frame_rate_bytes, byteorder='little')
 
-        target_end_frame = int(overwrite_start_time * target_params.framerate)
+        wave_file.seek(34)
+        bits_per_sample_bytes = wave_file.read(2)
+        bits_per_sample = int.from_bytes(bits_per_sample_bytes, byteorder='little')
+    
+    sample_width = bits_per_sample / 8
 
-        front_target_frames = input_wave.readframes(target_end_frame)
+    end_pos = int(overwrite_start_time * frame_rate * sample_width)
+    
 
-        input_wave.setpos(target_end_frame + source_params.nframes)
+    overwrited_wave = target_wave[:end_pos] + source_wave + target_wave[end_pos + len(source_wave):]
 
-        back_target_frames = input_wave.readframes(target_params.nframes - input_wave.tell())
+    recorder = AudioRecorder()
+    recorder.write_wav_file(output_file, overwrited_wave)
 
-    with wave.open(output_file, 'wb') as output_wave:
-        
-        output_wave.setparams(target_params)
-        
-        overwrited_frames = front_target_frames + source_frames + back_target_frames
-
-        output_wave.writeframes(overwrited_frames)
     return None
