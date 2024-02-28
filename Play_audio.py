@@ -1,4 +1,5 @@
 import pyaudio
+import time
 
 class AudioPlayer:
     def __init__(self, audio_directory, audio_name):
@@ -19,27 +20,38 @@ class AudioPlayer:
 
         sample_width = bits_per_sample // 8
 
-        if speed == '50%':
-            adjusted_wave = bytearray()
-            for i in range(44, len(wave), sample_width):
-                adjusted_wave.extend(wave[i:i+sample_width])
-                adjusted_wave.extend(wave[i:i+sample_width])
-        elif speed == '200%':
-            adjusted_wave = bytearray()
-            for i in range(44, len(wave), sample_width*2):
-                adjusted_wave.extend(wave[i:i+sample_width])
-
         self.audio_obj = pyaudio.PyAudio()
         self.stream = self.audio_obj.open(format=self.audio_obj.get_format_from_width(sample_width),
                                 channels=n_channels,
                                 rate=sample_rate,
                                 output=True)
+        
+        with open(self.audio_directory + '/' + self.audio_name, 'rb') as input_file:
+            input_file.seek(44)
+            data = input_file.read(2048)
 
-        if speed == '50%' or speed == '200%':
-            self.stream.write(bytes(adjusted_wave))
-        else:
-            self.stream.write(wave)
+            while data != b"" and not self.stopped:
+                    if self.paused:
+                        time.sleep(0.1)
+                    else:
+                        if speed == '50%':
+                            adjusted_wave = bytearray()
+                            for i in range(0, len(data), sample_width):
+                                adjusted_wave.extend(data[i:i+sample_width])
+                                adjusted_wave.extend(data[i:i+sample_width])
+                        elif speed == '200%':
+                            adjusted_wave = bytearray()
+                            for i in range(0, len(data), sample_width*2):
+                                adjusted_wave.extend(data[i:i+sample_width])
+                        
+                        if speed == '50%' or speed == '200%':
+                            self.stream.write(bytes(adjusted_wave))
+                        else:
+                            self.stream.write(data)
+                        
+                        data = input_file.read(2048)
 
+        self.stopped = True
         self.stream.stop_stream()
         self.stream.close()
         self.audio_obj.terminate()
@@ -52,6 +64,3 @@ class AudioPlayer:
 
     def stop_audio(self):
         self.stopped = True
-        self.stream.stop_stream()
-        self.stream.close()
-        self.audio_obj.terminate()

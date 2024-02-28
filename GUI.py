@@ -277,24 +277,29 @@ while True:
                         window["-play-length-"].update(slider_position)
 
                     if event == "-End_Play-":
+                        player.stop_audio()
                         stop_play()
                         break
 
                     if event == "Pause":
                         paused = True
+                        player.pause_audio()
                         while paused:
                             event, values = window.read()
                             if event == sg.WINDOW_CLOSED:
                                 player.stop_audio()
                                 break
                             if event == "Play":
+                                player.resume_audio()
                                 paused = False
                                 break
                             if event == "Stop":
+                                player.stop_audio()
                                 stop_play()
                                 break
 
                     if event == "Stop":
+                        player.stop_audio()
                         stop_play()
                         break
     elif event == "Pause":
