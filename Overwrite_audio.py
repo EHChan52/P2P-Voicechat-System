@@ -7,7 +7,7 @@ def Overwrite_audio(audio_directory, target_file, source_file, overwrite_start_t
     with open(source_file, 'rb') as wave_file:
         source_wave = bytearray(wave_file.read())
 
-    with open(target_file, 'rb') as wave_file:
+    with open(audio_directory + '/' + target_file, 'rb') as wave_file:
         target_wave = bytearray(wave_file.read())
 
         wave_file.seek(24)

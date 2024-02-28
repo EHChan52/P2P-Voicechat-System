@@ -73,7 +73,7 @@ def Overwrite_audio_GUI(audio_directory,selected_audio_name,selected_audio_lengt
             if event == sg.WIN_CLOSED or event == 'Discard & Exit': 
                 break
             if event == 'Save & Exit':
-                full_path_1 = audio_directory + '/' + selected_audio_name
+                full_path_1 = selected_audio_name
                 full_path_2 = audio_directory + '/' + selected_audio_name
                 Overwrite_audio(audio_directory,full_path_1,full_path_2,values["-Trimmed-Starting-Time-Slide-"])
                 break
