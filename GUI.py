@@ -163,7 +163,7 @@ while True:
     event, values = window.read()
     window.finalize()
     audio_info_list = List_all_audio(audio_directory)
-    if event == sg.WIN_CLOSED:
+    if event == sg.WINDOW_CLOSED:
         player.stop_audio()
         break
     elif event == 'Import Audio':
@@ -186,7 +186,6 @@ while True:
     elif event == 'Record':
         recorder = AudioRecorder(audio_directory)
         recorder.run()
-        audio_info_list = List_all_audio(audio_directory)
         window["-TABLE-"].update(List_all_audio(audio_directory))
     elif event == "Delete":
         selected_audio_name = [
@@ -282,7 +281,7 @@ while True:
     elif event == 'Pause':
         paused = True
     elif event == 'Stop':
-        stop_play()
+        pass
     elif event == "Muted":
         window["-Volume-"].update(0)
         window["Muted"].update("🔇")
