@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 from Import_audio import Import_audio
 from Record_audio import AudioRecorder
 from Trim_audio_GUI import Trim_audio_GUI
-from Overwrite_audio import Overwrite_audio
+from Overwrite_audio_GUI import Overwrite_audio_GUI
 from Abouts import List_about
 from User_guide import List_user_guide
 from List_all_audio import List_all_audio
