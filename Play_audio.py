@@ -20,10 +20,15 @@ class AudioPlayer:
 
         sample_width = bits_per_sample // 8
 
+        if (speed == '200%'):
+            speed = 2
+        if (speed == '50%'):
+            speed = 0.5
+
         self.audio_obj = pyaudio.PyAudio()
         self.stream = self.audio_obj.open(format=self.audio_obj.get_format_from_width(sample_width),
                                 channels=n_channels,
-                                rate=sample_rate,
+                                rate=int(sample_rate * speed),
                                 output=True)
         
         with open(self.audio_directory + '/' + self.audio_name, 'rb') as input_file:
@@ -34,21 +39,7 @@ class AudioPlayer:
                     if self.paused:
                         time.sleep(0.1)
                     else:
-                        if speed == '50%':
-                            adjusted_wave = bytearray()
-                            for i in range(0, len(data), sample_width):
-                                adjusted_wave.extend(data[i:i+sample_width])
-                                adjusted_wave.extend(data[i:i+sample_width])
-                        elif speed == '200%':
-                            adjusted_wave = bytearray()
-                            for i in range(0, len(data), sample_width*2):
-                                adjusted_wave.extend(data[i:i+sample_width])
-                        
-                        if speed == '50%' or speed == '200%':
-                            self.stream.write(bytes(adjusted_wave))
-                        else:
-                            self.stream.write(data)
-                        
+                        self.stream.write(data)
                         data = input_file.read(2048)
 
         self.stopped = True
