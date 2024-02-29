@@ -172,7 +172,9 @@ while True:
         os.remove("temp_plot.png")
         break
     elif event == "Import Files":
-        Import_audio()
+        Import_audio(audio_directory)
+        window["-TABLE-"].update(List_all_audio(audio_directory))
+
     elif event == "Trim":
         selected_audio_name = [
             audio_info_list[row][0] for row in values["-TABLE-"]
