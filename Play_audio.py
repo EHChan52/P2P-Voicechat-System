@@ -1,5 +1,8 @@
 import pyaudio
 import time
+from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
+import win32gui
+import win32process
 
 class AudioPlayer:
     def __init__(self, audio_directory, audio_name):
@@ -9,8 +12,9 @@ class AudioPlayer:
         self.stopped = False
         self.stream = None
         self.audio_obj = None
+        self.volume_adjusted = False
 
-    def play_audio(self, speed):
+    def play_audio(self, speed, volume):
         with open(self.audio_directory + '/' + self.audio_name, 'rb') as input_file:
             wave = bytes(input_file.read())
 
@@ -46,8 +50,14 @@ class AudioPlayer:
                         
                         if speed == '50%' or speed == '200%':
                             self.stream.write(bytes(adjusted_wave))
+                            if not self.volume_adjusted:
+                                self.set_volume(volume)
+                                self.volume_adjusted = True
                         else:
                             self.stream.write(data)
+                            if not self.volume_adjusted:
+                                self.set_volume(volume)
+                                self.volume_adjusted = True
                         
                         data = input_file.read(2048)
 
@@ -64,3 +74,13 @@ class AudioPlayer:
 
     def stop_audio(self):
         self.stopped = True
+
+    def set_volume(self, volume):
+        window = win32gui.GetForegroundWindow()
+        _, pid = win32process.GetWindowThreadProcessId(window)
+        sessions = AudioUtilities.GetAllSessions()
+
+        for session in sessions:
+            if session.Process and session.ProcessId == pid:
+                volume_interface = session._ctl.QueryInterface(ISimpleAudioVolume)
+                volume_interface.SetMasterVolume(volume, None)

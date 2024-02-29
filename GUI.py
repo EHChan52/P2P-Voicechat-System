@@ -24,7 +24,6 @@ os.makedirs("audios", exist_ok=True)
 thread_running = False
 paused = False
 
-
 # ------ Menu Definition ------ #
 menu_def = [
     ["File", ["Import Files"]],
@@ -167,6 +166,11 @@ while True:
     event, values = window.read()
     window.finalize()
     audio_info_list = List_all_audio(audio_directory)
+    selected_audio_name = [
+        audio_info_list[row][0] for row in values["-TABLE-"]
+    ]
+    if selected_audio_name != []:
+        player = AudioPlayer(audio_directory, selected_audio_name[0])
     if event == sg.WINDOW_CLOSED:
         player.stop_audio()
         os.remove("temp_plot.png")
@@ -212,10 +216,11 @@ while True:
         selected_audio_name = [
             audio_info_list[row][0] for row in values["-TABLE-"]
         ]  # return audio name as list
-        waveform_image=Generate_waveform(audio_directory+'/'+selected_audio_name[0])
-        graph = window["-GRAPH-"]
-        # Display the image on the graph
-        graph.draw_image(data=waveform_image, location=(0, 200))
+        if selected_audio_name != []:
+            waveform_image=Generate_waveform(audio_directory+'/'+selected_audio_name[0])
+            graph = window["-GRAPH-"]
+            # Display the image on the graph
+            graph.draw_image(data=waveform_image, location=(0, 200))
         def update_elapsed_time(speed):
             global thread_running
             thread_running = True
@@ -271,12 +276,13 @@ while True:
             if not thread_running:
                 window["-Audio_playing_name-"].update(selected_audio_name)
                 window["-Audio_Length-"].update(selected_audio_length[0])
-                player = AudioPlayer(audio_directory, selected_audio_name[0])
+                
                 # args=speed
                 threading.Thread(
-                    target=player.play_audio, args=(values["-Speed-"],)
+                    target=player.play_audio, args=(values["-Speed-"], values["-Volume-"]/100)
                 ).start()
                 threading.Thread(target=update_elapsed_time, args=(values["-Speed-"],)).start()
+                
                 while True:
                     event, values = window.read()
 
@@ -315,6 +321,21 @@ while True:
                                 player.stop_audio()
                                 stop_play()
                                 break
+                            if event == "Muted":
+                                window["-Volume-"].update(0)
+                                window["Muted"].update("🔇")
+                                player.set_volume(0)
+                            if event == "-Volume-":
+                                volume_value = values["-Volume-"]
+                                player.set_volume(volume_value/100)
+                                if volume_value == 0:
+                                    window["Muted"].update("🔇")
+                                elif volume_value > 0 and volume_value <= 33:
+                                    window["Muted"].update("🔈")
+                                elif volume_value > 33 and volume_value <= 66:
+                                    window["Muted"].update("🔉")
+                                else:
+                                    window["Muted"].update("🔊")
 
                     if event == "Stop":
                         player.stop_audio()
@@ -322,13 +343,34 @@ while True:
                         os.remove("temp_plot.png")
                         graph.erase()
                         break
+
+                    if event == "Muted":
+                        window["-Volume-"].update(0)
+                        window["Muted"].update("🔇")
+                        player.set_volume(0)
+
+                    if event == "-Volume-":
+                        volume_value = values["-Volume-"]
+                        player.set_volume(volume_value/100)
+                        if volume_value == 0:
+                            window["Muted"].update("🔇")
+                        elif volume_value > 0 and volume_value <= 33:
+                            window["Muted"].update("🔈")
+                        elif volume_value > 33 and volume_value <= 66:
+                            window["Muted"].update("🔉")
+                        else:
+                            window["Muted"].update("🔊")
     elif event == "Pause":
         paused = True
     elif event == "Muted":
         window["-Volume-"].update(0)
         window["Muted"].update("🔇")
+        if selected_audio_name != []:
+            player.set_volume(0)
     elif event == "-Volume-":
         volume_value = values["-Volume-"]
+        if selected_audio_name != []:
+            player.set_volume(volume_value/100)
         if volume_value == 0:
             window["Muted"].update("🔇")
         elif volume_value > 0 and volume_value <= 33:
