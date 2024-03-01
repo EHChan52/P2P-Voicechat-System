@@ -23,6 +23,7 @@ time_constant = time(0, 0, 0)
 os.makedirs("audios", exist_ok=True)
 thread_running = False
 paused = False
+length_adjusted = False
 
 # ------ Menu Definition ------ #
 menu_def = [
@@ -112,12 +113,12 @@ frame_layout_playback_controls = [
 frame_layout_audio_to_visual = [
     [
         sg.Graph(
-        canvas_size=(400, 200),
-        graph_bottom_left=(0, 0),
-        graph_top_right=(400, 200),
-        key="-GRAPH-",
-        enable_events=True,
-        background_color="black",
+            canvas_size=(400, 200),
+            graph_bottom_left=(0, 0),
+            graph_top_right=(400, 200),
+            key="-GRAPH-",
+            enable_events=True,
+            background_color="black",
         )
     ],
     [
@@ -125,6 +126,7 @@ frame_layout_audio_to_visual = [
         sg.StatusBar("", key="-AudiotoText-", background_color="white"),
     ],
 ]
+
 layout = [
     [sg.Menu(menu_def)],
     [
@@ -147,8 +149,8 @@ layout = [
         sg.Text("/"),
         sg.Text(time_constant, key="-Audio_Length-"),
         sg.Slider(
-            range=(0, 1000),
-            key="-play-length-",
+            range=(0, 100),
+            key="-Play_Length-",
             size=(100, 10),
             orientation="h",
             enable_events=True,
@@ -159,18 +161,59 @@ layout = [
 ]
 
 # Create the Window
-window = sg.Window("Sound Recorder", layout,finalize=True)
+window = sg.Window("Sound Recorder", layout, finalize=True)
+
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
     window.finalize()
     audio_info_list = List_all_audio(audio_directory)
-    selected_audio_name = [
-        audio_info_list[row][0] for row in values["-TABLE-"]
-    ]
+    selected_audio_name = [audio_info_list[row][0] for row in values["-TABLE-"]]
+    selected_audio_length = [audio_info_list[row][1] for row in values["-TABLE-"]]
+    if selected_audio_name == [] and selected_audio_length == []:
+        continue
     if selected_audio_name != []:
         player = AudioPlayer(audio_directory, selected_audio_name[0])
+
+    def update_elapsed_time(speed):
+        global thread_running
+        thread_running = True
+
+        audio_length = datetime.strptime(selected_audio_length[0], "%H:%M:%S")
+        hours, minutes, seconds = selected_audio_length[0].split(":")
+        total_seconds = int(hours) * 3600 + int(minutes) * 60 + int(seconds)
+        current_second = int(values["-Play_Length-"] / 100 * total_seconds)
+        elapsed_hours = current_second // 3600
+        elapsed_minutes = (current_second % 3600) // 60
+        elapsed_seconds = current_second % 60
+        elapsed_time_str = (
+            f"{elapsed_hours:02d}:{elapsed_minutes:02d}:{elapsed_seconds:02d}"
+        )
+        elapsed_time = datetime.strptime(elapsed_time_str, "%H:%M:%S")
+
+        while elapsed_time < audio_length and thread_running and not length_adjusted:
+            if not paused:
+                elapsed_time += timedelta(seconds=1)
+                elapsed_time_str2 = elapsed_time.strftime("%H:%M:%S")
+                window.write_event_value("-Update_Elapsed_Time-", elapsed_time_str2)
+
+                elapsed_seconds = (elapsed_time - datetime(1900, 1, 1)).total_seconds()
+                audio_length_seconds = (
+                    audio_length - datetime(1900, 1, 1)
+                ).total_seconds()
+                slider_position = int((elapsed_seconds / audio_length_seconds) * 100)
+                window.write_event_value("-Update_Slider_Position-", slider_position)
+
+            if speed == "50%":
+                sg.time.sleep(2)
+            elif speed == "200%":
+                sg.time.sleep(0.5)
+            else:
+                sg.time.sleep(1)
+
+        window.write_event_value("-End_Play-", "end")
+
     if event == sg.WINDOW_CLOSED:
         player.stop_audio()
         os.remove("temp_plot.png")
@@ -217,48 +260,18 @@ while True:
             audio_info_list[row][0] for row in values["-TABLE-"]
         ]  # return audio name as list
         if selected_audio_name != []:
-            waveform_image=Generate_waveform(audio_directory+'/'+selected_audio_name[0])
+            waveform_image = Generate_waveform(
+                audio_directory + "/" + selected_audio_name[0]
+            )
             graph = window["-GRAPH-"]
             # Display the image on the graph
             graph.draw_image(data=waveform_image, location=(0, 200))
-        def update_elapsed_time(speed):
-            global thread_running
-            thread_running = True
-            elapsed_time = datetime.strptime("00:00:00", "%H:%M:%S")
-            audio_length = datetime.strptime(selected_audio_length[0], "%H:%M:%S")
-            while elapsed_time < audio_length and thread_running:
-                if not paused:
-                    elapsed_time += timedelta(seconds=1)
-                    elapsed_time_str = elapsed_time.strftime("%H:%M:%S")
-                    window.write_event_value("-Update_Elapsed_Time-", elapsed_time_str)
-
-                    elapsed_seconds = (
-                        elapsed_time - datetime(1900, 1, 1)
-                    ).total_seconds()
-                    audio_length_seconds = (
-                        audio_length - datetime(1900, 1, 1)
-                    ).total_seconds()
-                    slider_position = int(
-                        (elapsed_seconds / audio_length_seconds) * 1000
-                    )
-                    window.write_event_value(
-                        "-Update_Slider_Position-", slider_position
-                    )
-
-                if speed == '50%':
-                    sg.time.sleep(2)
-                elif speed == '200%':
-                    sg.time.sleep(0.5)
-                else:
-                    sg.time.sleep(1)
-
-            window.write_event_value("-End_Play-", "end")
 
         def stop_play():
             window["-Audio_playing_name-"].update("")
             window["-Eplased_Playtime-"].update(time_constant)
             window["-Audio_Length-"].update(time_constant)
-            window["-play-length-"].update(0)
+            window["-Play_Length-"].update(0)
             graph.erase()
             global thread_running
             thread_running = False
@@ -276,13 +289,20 @@ while True:
             if not thread_running:
                 window["-Audio_playing_name-"].update(selected_audio_name)
                 window["-Audio_Length-"].update(selected_audio_length[0])
-                
+
                 # args=speed
                 threading.Thread(
-                    target=player.play_audio, args=(values["-Speed-"], values["-Volume-"]/100)
+                    target=player.play_audio,
+                    args=(
+                        values["-Speed-"],
+                        values["-Volume-"] / 100,
+                        values["-Play_Length-"] / 100,
+                    ),
                 ).start()
-                threading.Thread(target=update_elapsed_time, args=(values["-Speed-"],)).start()
-                
+                threading.Thread(
+                    target=update_elapsed_time, args=(values["-Speed-"],)
+                ).start()
+
                 while True:
                     event, values = window.read()
 
@@ -297,7 +317,7 @@ while True:
 
                     if event == "-Update_Slider_Position-":
                         slider_position = values[event]
-                        window["-play-length-"].update(slider_position)
+                        window["-Play_Length-"].update(slider_position)
 
                     if event == "-End_Play-":
                         stop_play()
@@ -327,7 +347,7 @@ while True:
                                 player.set_volume(0)
                             if event == "-Volume-":
                                 volume_value = values["-Volume-"]
-                                player.set_volume(volume_value/100)
+                                player.set_volume(volume_value / 100)
                                 if volume_value == 0:
                                     window["Muted"].update("🔇")
                                 elif volume_value > 0 and volume_value <= 33:
@@ -351,7 +371,7 @@ while True:
 
                     if event == "-Volume-":
                         volume_value = values["-Volume-"]
-                        player.set_volume(volume_value/100)
+                        player.set_volume(volume_value / 100)
                         if volume_value == 0:
                             window["Muted"].update("🔇")
                         elif volume_value > 0 and volume_value <= 33:
@@ -370,7 +390,7 @@ while True:
     elif event == "-Volume-":
         volume_value = values["-Volume-"]
         if selected_audio_name != []:
-            player.set_volume(volume_value/100)
+            player.set_volume(volume_value / 100)
         if volume_value == 0:
             window["Muted"].update("🔇")
         elif volume_value > 0 and volume_value <= 33:
