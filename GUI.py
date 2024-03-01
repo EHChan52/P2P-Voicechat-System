@@ -163,6 +163,7 @@ layout = [
 # Create the Window
 window = sg.Window("Sound Recorder", layout, finalize=True)
 
+
 class Updater:
     def __init__(self, elapsed_time, audio_length, speed):
         self.elapsed_time = elapsed_time
@@ -170,13 +171,19 @@ class Updater:
         self.speed = speed
 
     def update(self):
-        while self.elapsed_time < self.audio_length and thread_running and not length_adjusted:
+        while (
+            self.elapsed_time < self.audio_length
+            and thread_running
+            and not length_adjusted
+        ):
             if not paused:
                 self.elapsed_time += timedelta(seconds=1)
                 elapsed_time_str = self.elapsed_time.strftime("%H:%M:%S")
                 window.write_event_value("-Update_Elapsed_Time-", elapsed_time_str)
 
-                elapsed_seconds = (self.elapsed_time - datetime(1900, 1, 1)).total_seconds()
+                elapsed_seconds = (
+                    self.elapsed_time - datetime(1900, 1, 1)
+                ).total_seconds()
                 audio_length_seconds = (
                     self.audio_length - datetime(1900, 1, 1)
                 ).total_seconds()
@@ -195,6 +202,7 @@ class Updater:
     def update_elapsed_time(self, time):
         self.elapsed_time = time
 
+
 def get_time(selected_audio_length):
     audio_length = datetime.strptime(selected_audio_length, "%H:%M:%S")
     hours, minutes, seconds = selected_audio_length.split(":")
@@ -208,6 +216,7 @@ def get_time(selected_audio_length):
     )
     elapsed_time = datetime.strptime(elapsed_time_str, "%H:%M:%S")
     return elapsed_time, audio_length
+
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
@@ -297,12 +306,12 @@ while True:
                 thread_running = True
 
                 # args=speed
+                player.set_current_sample(values["-Play_Length-"] / 100)
                 threading.Thread(
                     target=player.play_audio,
                     args=(
                         values["-Speed-"],
                         values["-Volume-"] / 100,
-                        values["-Play_Length-"] / 100,
                     ),
                 ).start()
 
@@ -343,6 +352,13 @@ while True:
                             if event == "Play":
                                 player.resume_audio()
                                 paused = False
+                                threading.Thread(
+                                    target=player.play_audio,
+                                    args=(
+                                        values["-Speed-"],
+                                        values["-Volume-"] / 100,
+                                    ),
+                                ).start()
                                 break
                             if event == "Stop":
                                 player.stop_audio()
@@ -364,8 +380,15 @@ while True:
                                 else:
                                     window["Muted"].update("🔊")
                             if event == "-Play_Length-":
-                                elapsed_time, audio_length = get_time(selected_audio_length[0])
+                                elapsed_time, audio_length = get_time(
+                                    selected_audio_length[0]
+                                )
                                 updater.update_elapsed_time(elapsed_time)
+                                player.stop_audio()
+                                player = AudioPlayer(
+                                    audio_directory, selected_audio_name[0]
+                                )
+                                player.set_current_sample(values["-Play_Length-"] / 100)
 
                     if event == "Stop":
                         player.stop_audio()
@@ -394,6 +417,16 @@ while True:
                     if event == "-Play_Length-":
                         elapsed_time, audio_length = get_time(selected_audio_length[0])
                         updater.update_elapsed_time(elapsed_time)
+                        player.stop_audio()
+                        player = AudioPlayer(audio_directory, selected_audio_name[0])
+                        player.set_current_sample(values["-Play_Length-"] / 100)
+                        threading.Thread(
+                            target=player.play_audio,
+                            args=(
+                                values["-Speed-"],
+                                values["-Volume-"] / 100,
+                            ),
+                        ).start()
     elif event == "Pause":
         paused = True
     elif event == "Muted":

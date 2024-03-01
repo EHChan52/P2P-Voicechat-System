@@ -14,8 +14,10 @@ class AudioPlayer:
         self.stream = None
         self.audio_obj = None
         self.volume_adjusted = False
+        self.no_of_sample = 0
+        self.current_audio = None
 
-    def play_audio(self, speed, volume, current_ratio):
+    def play_audio(self, speed, volume):
         with open(self.audio_directory + "/" + self.audio_name, "rb") as input_file:
             wave = bytes(input_file.read())
 
@@ -34,25 +36,28 @@ class AudioPlayer:
         )
 
         with open(self.audio_directory + "/" + self.audio_name, "rb") as input_file:
-            audio_length = len(input_file.read()) - 44
-            current_byte = int(audio_length * current_ratio)
-            no_of_sample = current_byte // 2048
-            input_file.seek(44 + no_of_sample * 2048)
-            data = input_file.read(2048)
+            input_file.seek(44 + self.no_of_sample * 2048)
+            self.current_audio = input_file.read(2048)
 
-            while data != b"" and not self.stopped:
+            while self.current_audio != b"" and not self.stopped:
                 if self.paused:
                     time.sleep(0.1)
                 else:
                     if speed == "50%":
                         adjusted_wave = bytearray()
-                        for i in range(0, len(data), sample_width):
-                            adjusted_wave.extend(data[i : i + sample_width])
-                            adjusted_wave.extend(data[i : i + sample_width])
+                        for i in range(0, len(self.current_audio), sample_width):
+                            adjusted_wave.extend(
+                                self.current_audio[i : i + sample_width]
+                            )
+                            adjusted_wave.extend(
+                                self.current_audio[i : i + sample_width]
+                            )
                     elif speed == "200%":
                         adjusted_wave = bytearray()
-                        for i in range(0, len(data), sample_width * 2):
-                            adjusted_wave.extend(data[i : i + sample_width])
+                        for i in range(0, len(self.current_audio), sample_width * 2):
+                            adjusted_wave.extend(
+                                self.current_audio[i : i + sample_width]
+                            )
 
                     if speed == "50%" or speed == "200%":
                         self.stream.write(bytes(adjusted_wave))
@@ -60,12 +65,12 @@ class AudioPlayer:
                             self.set_volume(volume)
                             self.volume_adjusted = True
                     else:
-                        self.stream.write(data)
+                        self.stream.write(self.current_audio)
                         if not self.volume_adjusted:
                             self.set_volume(volume)
                             self.volume_adjusted = True
 
-                    data = input_file.read(2048)
+                    self.current_audio = input_file.read(2048)
 
         self.stopped = True
         self.stream.stop_stream()
@@ -90,3 +95,9 @@ class AudioPlayer:
             if session.Process and session.ProcessId == pid:
                 volume_interface = session._ctl.QueryInterface(ISimpleAudioVolume)
                 volume_interface.SetMasterVolume(volume, None)
+
+    def set_current_sample(self, inratio):
+        with open(self.audio_directory + "/" + self.audio_name, "rb") as input_file:
+            audio_length = len(input_file.read()) - 44
+            current_byte = int(audio_length * inratio)
+            self.no_of_sample = current_byte // 2048
