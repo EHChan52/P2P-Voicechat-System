@@ -2,7 +2,6 @@ import numpy as np
 from scipy.io import wavfile
 from scipy import signal
 import PySimpleGUI as sg
-from pydub.playback import play
 from datetime import time, datetime, timedelta
 from audio_to_waveform import Generate_waveform
 import os
@@ -100,19 +99,10 @@ class Equalizer:
                 self.window["-width-"].update(default_value-default_value)
 
             elif event == '-reset-':
-                default_value=50
-                self.window["-20hz-"].update(default_value)
-                self.window["-40hz-"].update(default_value)
-                self.window["-80hz-"].update(default_value)
-                self.window["-160hz-"].update(default_value)
-                self.window["-320hz-"].update(default_value)
-                self.window["-640hz-"].update(default_value)
-                self.window["-1280hz-"].update(default_value)
-                self.window["-2560hz-"].update(default_value)
-                self.window["-5120hz-"].update(default_value)
-                self.window["-10240hz-"].update(default_value)
-                self.window["-preamp-"].update(default_value-default_value)
-                self.window["-width-"].update(default_value-default_value)
+                graph1 = self.window["-GRAPH1-"]
+                graph2 = self.window["-GRAPH2-"]
+                graph1.erase()
+                graph2.erase()
                 self.window["-GRAPH1-"].update("#000000")
                 self.window["-GRAPH2-"].update("#000000")
                 
@@ -220,11 +210,8 @@ class Equalizer:
                 graph1 = self.window["-GRAPH1-"]
                 graph2 = self.window["-GRAPH2-"]
                 # Display the image on the graph
-                graph1.erase()
-                graph2.erase()
                 graph1.draw_image(data=waveform_image1, location=(0, 200))
                 graph2.draw_image(data=waveform_image2, location=(0, 200))
-                os.remove('temp_plot.png')
 
             elif event == 'Save & Exit':
                 os.remove('temp_plot.png')
