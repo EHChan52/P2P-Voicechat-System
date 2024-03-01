@@ -163,6 +163,51 @@ layout = [
 # Create the Window
 window = sg.Window("Sound Recorder", layout, finalize=True)
 
+class Updater:
+    def __init__(self, elapsed_time, audio_length, speed):
+        self.elapsed_time = elapsed_time
+        self.audio_length = audio_length
+        self.speed = speed
+
+    def update(self):
+        while self.elapsed_time < self.audio_length and thread_running and not length_adjusted:
+            if not paused:
+                self.elapsed_time += timedelta(seconds=1)
+                elapsed_time_str = self.elapsed_time.strftime("%H:%M:%S")
+                window.write_event_value("-Update_Elapsed_Time-", elapsed_time_str)
+
+                elapsed_seconds = (self.elapsed_time - datetime(1900, 1, 1)).total_seconds()
+                audio_length_seconds = (
+                    self.audio_length - datetime(1900, 1, 1)
+                ).total_seconds()
+                slider_position = int((elapsed_seconds / audio_length_seconds) * 100)
+                window.write_event_value("-Update_Slider_Position-", slider_position)
+
+            if self.speed == "50%":
+                sg.time.sleep(2)
+            elif self.speed == "200%":
+                sg.time.sleep(0.5)
+            else:
+                sg.time.sleep(1)
+
+        window.write_event_value("-End_Play-", "end")
+
+    def update_elapsed_time(self, time):
+        self.elapsed_time = time
+
+def get_time(selected_audio_length):
+    audio_length = datetime.strptime(selected_audio_length, "%H:%M:%S")
+    hours, minutes, seconds = selected_audio_length.split(":")
+    total_seconds = int(hours) * 3600 + int(minutes) * 60 + int(seconds)
+    current_second = int(values["-Play_Length-"] / 100 * total_seconds)
+    elapsed_hours = current_second // 3600
+    elapsed_minutes = (current_second % 3600) // 60
+    elapsed_seconds = current_second % 60
+    elapsed_time_str = (
+        f"{elapsed_hours:02d}:{elapsed_minutes:02d}:{elapsed_seconds:02d}"
+    )
+    elapsed_time = datetime.strptime(elapsed_time_str, "%H:%M:%S")
+    return elapsed_time, audio_length
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
@@ -171,48 +216,8 @@ while True:
     audio_info_list = List_all_audio(audio_directory)
     selected_audio_name = [audio_info_list[row][0] for row in values["-TABLE-"]]
     selected_audio_length = [audio_info_list[row][1] for row in values["-TABLE-"]]
-    if selected_audio_name == [] and selected_audio_length == []:
-        continue
     if selected_audio_name != []:
         player = AudioPlayer(audio_directory, selected_audio_name[0])
-
-    def update_elapsed_time(speed):
-        global thread_running
-        thread_running = True
-
-        audio_length = datetime.strptime(selected_audio_length[0], "%H:%M:%S")
-        hours, minutes, seconds = selected_audio_length[0].split(":")
-        total_seconds = int(hours) * 3600 + int(minutes) * 60 + int(seconds)
-        current_second = int(values["-Play_Length-"] / 100 * total_seconds)
-        elapsed_hours = current_second // 3600
-        elapsed_minutes = (current_second % 3600) // 60
-        elapsed_seconds = current_second % 60
-        elapsed_time_str = (
-            f"{elapsed_hours:02d}:{elapsed_minutes:02d}:{elapsed_seconds:02d}"
-        )
-        elapsed_time = datetime.strptime(elapsed_time_str, "%H:%M:%S")
-
-        while elapsed_time < audio_length and thread_running and not length_adjusted:
-            if not paused:
-                elapsed_time += timedelta(seconds=1)
-                elapsed_time_str2 = elapsed_time.strftime("%H:%M:%S")
-                window.write_event_value("-Update_Elapsed_Time-", elapsed_time_str2)
-
-                elapsed_seconds = (elapsed_time - datetime(1900, 1, 1)).total_seconds()
-                audio_length_seconds = (
-                    audio_length - datetime(1900, 1, 1)
-                ).total_seconds()
-                slider_position = int((elapsed_seconds / audio_length_seconds) * 100)
-                window.write_event_value("-Update_Slider_Position-", slider_position)
-
-            if speed == "50%":
-                sg.time.sleep(2)
-            elif speed == "200%":
-                sg.time.sleep(0.5)
-            else:
-                sg.time.sleep(1)
-
-        window.write_event_value("-End_Play-", "end")
 
     if event == sg.WINDOW_CLOSED:
         player.stop_audio()
@@ -289,6 +294,7 @@ while True:
             if not thread_running:
                 window["-Audio_playing_name-"].update(selected_audio_name)
                 window["-Audio_Length-"].update(selected_audio_length[0])
+                thread_running = True
 
                 # args=speed
                 threading.Thread(
@@ -299,9 +305,10 @@ while True:
                         values["-Play_Length-"] / 100,
                     ),
                 ).start()
-                threading.Thread(
-                    target=update_elapsed_time, args=(values["-Speed-"],)
-                ).start()
+
+                elapsed_time, audio_length = get_time(selected_audio_length[0])
+                updater = Updater(elapsed_time, audio_length, values["-Speed-"])
+                threading.Thread(target=updater.update).start()
 
                 while True:
                     event, values = window.read()
@@ -356,6 +363,9 @@ while True:
                                     window["Muted"].update("🔉")
                                 else:
                                     window["Muted"].update("🔊")
+                            if event == "-Play_Length-":
+                                elapsed_time, audio_length = get_time(selected_audio_length[0])
+                                updater.update_elapsed_time(elapsed_time)
 
                     if event == "Stop":
                         player.stop_audio()
@@ -380,6 +390,10 @@ while True:
                             window["Muted"].update("🔉")
                         else:
                             window["Muted"].update("🔊")
+
+                    if event == "-Play_Length-":
+                        elapsed_time, audio_length = get_time(selected_audio_length[0])
+                        updater.update_elapsed_time(elapsed_time)
     elif event == "Pause":
         paused = True
     elif event == "Muted":
