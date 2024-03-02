@@ -314,7 +314,7 @@ class Equalizer:
 
                 elif event == 'Preview Changes':    
                     wavfile.write('equalized.wav', self.fs, self.data.astype(np.int16))
-                    waveform_image1 = Generate_waveform("test.wav")
+                    waveform_image1 = Generate_waveform(self.audioName)
                     graph1 = self.window["-GRAPH1-"]
                     graph1.draw_image(data=waveform_image1, location=(0, 200))
                     waveform_image2 = Generate_waveform("equalized.wav")
