@@ -3,8 +3,6 @@ from Import_audio import Import_audio
 from Record_audio import AudioRecorder
 from Trim_audio_GUI import Trim_audio_GUI
 from Overwrite_audio_GUI import Overwrite_audio_GUI
-from Abouts import List_about
-from User_guide import List_user_guide
 from List_all_audio import List_all_audio
 from Delete_audio import Delete_Audio
 from audio_to_waveform import Generate_waveform
@@ -254,10 +252,6 @@ while True:
         ]  # return audio length as list
         Overwrite_audio_GUI(audio_directory, selected_audio_name, selected_audio_length)
         window["-TABLE-"].update(List_all_audio(audio_directory))
-    elif event == "User Guide":
-        List_user_guide()
-    elif event == "About...":
-        List_about()
     elif event == "Record":
         recorder = AudioRecorder(audio_directory)
         recorder.run()
