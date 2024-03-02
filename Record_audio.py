@@ -18,6 +18,7 @@ class AudioRecorder:
         self.sampwidth = 2
         self.framerate = 44100
 
+        # Create PySimpleGUI layout
         layout = [
             [sg.Text("Recording in progress...")],
             [sg.Text("Time: ", key="TIMER")],
@@ -27,11 +28,13 @@ class AudioRecorder:
             ],
         ]
 
+        # Create PySimpleGUI window
         self.window = sg.Window("Recording", layout)
 
     def start_recording(self):
         self.file_name = self.audio_directory + f"/recording_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
 
+        # Open audio stream
         stream = self.audio.open(
             format=pyaudio.paInt16,
             channels=1,
@@ -40,10 +43,12 @@ class AudioRecorder:
             frames_per_buffer=1024,
         )
 
+        # Start recording
         self.recording = True
         start_time = datetime.datetime.now()
 
         while self.recording:
+            # Handle closing window when recording
             event, _ = self.window.read(timeout=0)
             if event == sg.WINDOW_CLOSED:
                 return
@@ -51,15 +56,19 @@ class AudioRecorder:
             data = stream.read(1024)
             self.frames.append(data)
 
+            # Update time in the GUI
             time = datetime.datetime.now() - start_time
             time = str(time).split(".")[0]  # Remove milliseconds
             self.window["TIMER"].update(f"Time: {time}")
 
+        # Stop recording and close audio stream
         stream.stop_stream()
         stream.close()
 
+        # Terminate PyAudio
         self.audio.terminate()
 
+        # Write WAV file
         self.write_wav_file(self.file_name, b"".join(self.frames))
 
     def write_wav_file(self, file_name, data):

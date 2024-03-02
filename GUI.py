@@ -243,8 +243,9 @@ while True:
         if selected_audio_name!=[] and selected_audio_length!=[]:
             equalizer = Equalizer(audio_directory,selected_audio_name[0],selected_audio_length[0])
             equalizer.run()
-        else:
             window["-TABLE-"].update(List_all_audio(audio_directory))
+        else:
+            pass
     elif event == "Record":
         recorder = AudioRecorder(audio_directory)
         recorder.run()

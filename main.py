@@ -13,7 +13,7 @@ import threading
 from Play_audio import AudioPlayer
 from text_convert_ver2 import TextConverter
 from noise_reduction import NoiseReducer
-# All the stuff inside window.
+from User_guide import List_user_guide
 
 sg.theme("LightBlue")
 
@@ -28,7 +28,8 @@ length_adjusted = False
 # ------ Menu Definition ------ #
 menu_def = [
     ["File", ["Import Files","Delete"]],
-    ["Editor", ["Trim", "Overwrite","Audio_Equalizer"]]
+    ["Editor", ["Trim", "Overwrite","Audio_Equalizer"]],
+    ["User_Guide",["User_Guide"]]
 ]  # ------ Frame Definition ------ #
 header = [
     "Audio Name",
@@ -202,8 +203,6 @@ def get_time(selected_audio_length):
     elapsed_time = datetime.strptime(elapsed_time_str, "%H:%M:%S")
     return elapsed_time, audio_length
 
-
-# Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
     window.finalize()
@@ -252,6 +251,8 @@ while True:
             window["-TABLE-"].update(List_all_audio(audio_directory))
         else:
             pass
+    elif event == "User_Guide":
+        List_user_guide()
     elif event == "Record":
         recorder = AudioRecorder(audio_directory)
         recorder.run()
@@ -386,14 +387,6 @@ while True:
                                     audio_directory, selected_audio_name[0]
                                 )
                                 player.set_current_sample(values["-Play_Length-"] / 100)
-                            if event == "Text":
-                                audio_path = audio_directory + "/" + selected_audio_name[0]
-                                converter = TextConverter(audio_path)
-                                text = converter.process_audio_files()
-                                if type(text) == str:
-                                    window["-AudiotoText-"].update(text)
-                                else:
-                                    window["-AudiotoText-"].update("Speech recognition could not understand audio")
 
                     if event == "Stop":
                         player.stop_audio()
@@ -432,14 +425,6 @@ while True:
                                 values["-Volume-"] / 100,
                             ),
                         ).start()
-                    if event == "Text":
-                        audio_path = audio_directory + "/" + selected_audio_name[0]
-                        converter = TextConverter(audio_path)
-                        text = converter.process_audio_files()
-                        if type(text) == str:
-                            window["-AudiotoText-"].update(text)
-                        else:
-                            window["-AudiotoText-"].update("Speech recognition could not understand audio")
     elif event == "Pause":
         paused = True
     elif event == "Muted":
