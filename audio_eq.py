@@ -29,9 +29,6 @@ class Equalizer:
             frame_2560hz=[[sg.Slider(range=(0, 100), orientation='v', size=(10, 20), default_value=50,key='-2560hz-',enable_events=True)],[sg.Text("2560-5120Hz")]]
             frame_5120hz=[[sg.Slider(range=(0, 100), orientation='v', size=(10, 20), default_value=50,key='-5120hz-',enable_events=True)],[sg.Text("5120-10240Hz")]]
             frame_10240hz=[[sg.Slider(range=(0, 100), orientation='v', size=(10, 20), default_value=50,key='-10240hz-',enable_events=True)],[sg.Text("10240-20480Hz")]]
-            frame_preview=[[sg.Text("Original    Audio:"),sg.Button("▶", font=(40), key="Play"),sg.Button("⏸", font=(40), key="Pause"),sg.Button("◼", font=(40), key="Stop"),sg.Text('time_constant', key="-Eplased_Playtime-"),sg.Text("/"),sg.Text(self.selected_audio_length, key="-Audio_Length-"),sg.Slider(range=(0, 100),key="-Play_Length-",size=(30, 10),orientation="h",enable_events=True,disable_number_display=True,)],
-                        [sg.Text("Resultant Audio:"),sg.Button("▶", font=(40), key="Play"),sg.Button("⏸", font=(40), key="Pause"),sg.Button("◼", font=(40), key="Stop"),sg.Text('time_constant', key="-Eplased_Playtime-"),sg.Text("/"),sg.Text(self.selected_audio_length, key="-Audio_Length-"),sg.Slider(range=(0, 100),key="-Play_Length-",size=(30, 10),orientation="h",enable_events=True,disable_number_display=True,)]
-                        ]
             frame_preamp=[[sg.Slider(range=(-100, 20), orientation='v', size=(10, 20), default_value=0,key='-preamp-')],[sg.Text("Preamp")],[sg.Image('low.png',size=button_size,enable_events=True,key='-low-')],[sg.Image('band.png',size=button_size,enable_events=True,key='-band-')]]
             frame_width=[[sg.Slider(range=(0.0,5.0), orientation='v', size=(10, 20), default_value=0.0,key='-width-')],[sg.Text("Width")],[sg.Image('high.png',size=button_size,enable_events=True,key='-high-')],[sg.Image('stop.png',size=button_size,enable_events=True,key='-stop-')]]
             frame_freq_macro=[[sg.Image('default.png',size=button_size,enable_events=True,key='-default-'),sg.Image('up1.png',size=button_size,enable_events=True,key='-up1-'),sg.Image('up2.png',size=button_size,enable_events=True,key='-up2-'),sg.Image('up3.png',size=button_size,enable_events=True,key='-up3-'),sg.Image('up4.png',size=button_size,enable_events=True,key='-up4-')],
@@ -51,7 +48,7 @@ class Equalizer:
                     sg.Frame('',frame_preamp,element_justification='center',border_width=0),
                     sg.Frame('',frame_width,element_justification='center',border_width=0),
                         ],
-                        [sg.Frame('',frame_preview,element_justification='center',border_width=0),sg.Frame('',frame_freq_macro,element_justification='center',border_width=0)],
+                        [sg.Frame('',frame_freq_macro,element_justification='center',border_width=0)],
                     [sg.Frame('',frame_buttons,element_justification='center',border_width=0),sg.Graph(canvas_size=(400, 200),graph_bottom_left=(0, 0),graph_top_right=(400, 200),key="-GRAPH1-",enable_events=True,background_color="black"),sg.Graph(canvas_size=(400, 200),graph_bottom_left=(0, 0),graph_top_right=(400, 200),key="-GRAPH2-",enable_events=True,background_color="black")]
                     ]
 
@@ -89,8 +86,6 @@ class Equalizer:
                 event, values = self.window.read()
                 self.window.finalize()
                 if event == sg.WINDOW_CLOSED or event == 'Discard & Exit':
-                    self.data = self.original_data.copy()
-                    os.remove("equalized.wav")
                     break
 
                 elif event == '-default-':
@@ -335,6 +330,10 @@ class Equalizer:
                     result_file_path= "./" + self.audio_directory + "/equalized_" + self.selected_audio_name
                     wavfile.write(result_file_path, self.fs, self.data.astype(np.int16))
                     break
+
+                elif event == 'Discard & Exit':
+                    self.data = self.original_data.copy()
+                    os.remove("equalized.wav")
 
 
             self.window.close()
