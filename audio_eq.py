@@ -89,6 +89,8 @@ class Equalizer:
                 event, values = self.window.read()
                 self.window.finalize()
                 if event == sg.WINDOW_CLOSED or event == 'Discard & Exit':
+                    self.data = self.original_data.copy()
+                    os.remove("equalized.wav")
                     break
 
                 elif event == '-default-':
@@ -333,10 +335,6 @@ class Equalizer:
                     result_file_path= "./" + self.audio_directory + "/equalized_" + self.selected_audio_name
                     wavfile.write(result_file_path, self.fs, self.data.astype(np.int16))
                     break
-
-                elif event == 'Discard & Exit':
-                    self.data = self.original_data.copy()
-                    os.remove("equalized.wav")
 
 
             self.window.close()
