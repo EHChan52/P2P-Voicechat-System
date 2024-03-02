@@ -3,11 +3,10 @@ from Import_audio import Import_audio
 from Record_audio import AudioRecorder
 from Trim_audio_GUI import Trim_audio_GUI
 from Overwrite_audio_GUI import Overwrite_audio_GUI
-from Abouts import List_about
-from User_guide import List_user_guide
 from List_all_audio import List_all_audio
 from Delete_audio import Delete_Audio
 from audio_to_waveform import Generate_waveform
+from audio_eq import Equalizer
 import os
 from datetime import time, datetime, timedelta
 import threading
@@ -28,8 +27,7 @@ length_adjusted = False
 # ------ Menu Definition ------ #
 menu_def = [
     ["File", ["Import Files"]],
-    ["Editor", ["Trim", "Overwrite"]],
-    ["Help", ["User Guide", "About..."]],
+    ["Editor", ["Trim", "Overwrite","Audio_Equalizer"]]
 ]  # ------ Frame Definition ------ #
 header = [
     "Audio Name",
@@ -59,20 +57,7 @@ frame_layout_playback_speed = [
         sg.Spin(
             [
                 "50%",
-                "60%",
-                "70%",
-                "80%",
-                "90%",
                 "100%",
-                "110%",
-                "120%",
-                "130%",
-                "140%",
-                "150%",
-                "160%",
-                "170%",
-                "180%",
-                "190%",
                 "200%",
             ],
             size=(5, 1),
@@ -213,8 +198,6 @@ def get_time(selected_audio_length):
     elapsed_time = datetime.strptime(elapsed_time_str, "%H:%M:%S")
     return elapsed_time, audio_length
 
-
-# Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
     window.finalize()
@@ -250,10 +233,18 @@ while True:
         ]  # return audio length as list
         Overwrite_audio_GUI(audio_directory, selected_audio_name, selected_audio_length)
         window["-TABLE-"].update(List_all_audio(audio_directory))
-    elif event == "User Guide":
-        List_user_guide()
-    elif event == "About...":
-        List_about()
+    elif event == "Audio_Equalizer":
+        selected_audio_name = [
+            audio_info_list[row][0] for row in values["-TABLE-"]
+        ]  # return audio name as list
+        selected_audio_length = [
+            audio_info_list[row][1] for row in values["-TABLE-"]
+        ]  # return audio length as list
+        if selected_audio_name!=[] and selected_audio_length!=[]:
+            equalizer = Equalizer(audio_directory,selected_audio_name[0],selected_audio_length[0])
+            equalizer.run()
+        else:
+            window["-TABLE-"].update(List_all_audio(audio_directory))
     elif event == "Record":
         recorder = AudioRecorder(audio_directory)
         recorder.run()
@@ -445,7 +436,5 @@ while True:
             window["Muted"].update("🔉")
         else:
             window["Muted"].update("🔊")
-    else:
-        print(event, values)  # debug use
 
 window.close()
