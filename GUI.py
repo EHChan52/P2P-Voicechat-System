@@ -171,11 +171,7 @@ class Updater:
         self.speed = speed
 
     def update(self):
-        while (
-            self.elapsed_time < self.audio_length
-            and thread_running
-            and not length_adjusted
-        ):
+        while self.elapsed_time < self.audio_length and thread_running:
             if not paused:
                 self.elapsed_time += timedelta(seconds=1)
                 elapsed_time_str = self.elapsed_time.strftime("%H:%M:%S")
@@ -344,6 +340,7 @@ while True:
                     if event == "Pause":
                         paused = True
                         player.pause_audio()
+                        length_adjusted = False
                         while paused:
                             event, values = window.read()
                             if event == sg.WINDOW_CLOSED:
@@ -352,13 +349,14 @@ while True:
                             if event == "Play":
                                 player.resume_audio()
                                 paused = False
-                                threading.Thread(
-                                    target=player.play_audio,
-                                    args=(
-                                        values["-Speed-"],
-                                        values["-Volume-"] / 100,
-                                    ),
-                                ).start()
+                                if length_adjusted:
+                                    threading.Thread(
+                                        target=player.play_audio,
+                                        args=(
+                                            values["-Speed-"],
+                                            values["-Volume-"] / 100,
+                                        ),
+                                    ).start()
                                 break
                             if event == "Stop":
                                 player.stop_audio()
@@ -380,6 +378,7 @@ while True:
                                 else:
                                     window["Muted"].update("🔊")
                             if event == "-Play_Length-":
+                                length_adjusted = True
                                 elapsed_time, audio_length = get_time(
                                     selected_audio_length[0]
                                 )
