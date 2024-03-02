@@ -127,7 +127,7 @@ frame_layout_audio_to_visual = [
     ],
     [
         sg.Checkbox("Audio Transcription", default=False),
-        sg.StatusBar("", key="-AudiotoText-", background_color="white"),
+        sg.StatusBar("", key="-AudiotoText-", background_color="white", size=(50, 1)),
     ],
 ]
 
@@ -450,10 +450,14 @@ while True:
         else:
             window["Muted"].update("🔊")
     elif event == "Text":
-        audio_path = audio_directory #+ "/" + playing_audio_name
-        converter = TextConverter(audio_path)
-        text = converter.process_audio_files()
-        window["-AudiotoText-"].update(text)  # 更新文本转换结果显示栏
+        if selected_audio_name != []:
+            audio_path = audio_directory + "/" + selected_audio_name[0]
+            converter = TextConverter(audio_path)
+            text = converter.process_audio_files()
+            if type(text) == str:
+                window["-AudiotoText-"].update(text)
+            else:
+                window["-AudiotoText-"].update("Speech recognition could not understand audio")
     elif event == "NR":
         if not values["-TABLE-"]:
             print("Please select a file.")
