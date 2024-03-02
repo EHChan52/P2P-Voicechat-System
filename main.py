@@ -386,6 +386,14 @@ while True:
                                     audio_directory, selected_audio_name[0]
                                 )
                                 player.set_current_sample(values["-Play_Length-"] / 100)
+                            if event == "Text":
+                                audio_path = audio_directory + "/" + selected_audio_name[0]
+                                converter = TextConverter(audio_path)
+                                text = converter.process_audio_files()
+                                if type(text) == str:
+                                    window["-AudiotoText-"].update(text)
+                                else:
+                                    window["-AudiotoText-"].update("Speech recognition could not understand audio")
 
                     if event == "Stop":
                         player.stop_audio()
@@ -424,6 +432,14 @@ while True:
                                 values["-Volume-"] / 100,
                             ),
                         ).start()
+                    if event == "Text":
+                        audio_path = audio_directory + "/" + selected_audio_name[0]
+                        converter = TextConverter(audio_path)
+                        text = converter.process_audio_files()
+                        if type(text) == str:
+                            window["-AudiotoText-"].update(text)
+                        else:
+                            window["-AudiotoText-"].update("Speech recognition could not understand audio")
     elif event == "Pause":
         paused = True
     elif event == "Muted":
